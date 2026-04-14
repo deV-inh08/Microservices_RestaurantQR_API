@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Services/">
+    <Project Path="src/Services/Identity.API/Identity.API.csproj" />
+    <Project Path="src/Services/Menu.API/Menu.API.csproj" />
+    <Project Path="src/Services/Order.API/Order.API.csproj" />
+    <Project Path="src/Services/Reservation.API/Reservation.API.csproj" />
+  </Folder>
+</Solution>

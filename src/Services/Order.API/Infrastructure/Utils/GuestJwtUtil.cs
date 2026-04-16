@@ -33,7 +33,7 @@ public class GuestJwtUtil : IGuestJwtUtil
             new Claim("guestId", guest.Id.ToString()),
             new Claim("tableId", guest.TableId.ToString()),
             new Claim("sessionId", sessionId.ToString()), // snapshot SessionId
-            new Claim(ClaimTypes.Role, "Guest"),
+            new Claim("role", "Guest"),
             new Claim("tokenType", "GuestAccess"),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };

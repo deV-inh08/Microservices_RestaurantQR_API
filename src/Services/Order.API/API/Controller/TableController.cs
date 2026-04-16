@@ -13,7 +13,7 @@ public class TableController : ControllerBase
     public TableController(TableService tableService) => _tableService = tableService;
 
     [HttpGet]
-    [Authorize(AuthenticationSchemes = "Staff", Roles = "SuperAdmin,Admin,Staff")]
+    [Authorize(Roles = "SuperAdmin,Admin,Staff")]
     public async Task<IActionResult> GetAll()
     {
         var result = await _tableService.GetAllAsync();
@@ -21,7 +21,7 @@ public class TableController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-    [Authorize(AuthenticationSchemes = "Staff", Roles = "SuperAdmin,Admin,Staff")]
+    [Authorize(Roles = "SuperAdmin,Admin,Staff")]
     public async Task<IActionResult> GetById(int id)
     {
         var result = await _tableService.GetByIdAsync(id);
@@ -29,7 +29,7 @@ public class TableController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(AuthenticationSchemes = "Staff", Roles = "Admin,Staff")]
+    [Authorize(Roles = "Admin,Staff")]
     public async Task<IActionResult> Create([FromBody] CreateTableRequest request)
     {
         var result = await _tableService.CreateAsync(request);
@@ -37,7 +37,7 @@ public class TableController : ControllerBase
     }
 
     [HttpPatch("{id:int}/status")]
-    [Authorize(AuthenticationSchemes = "Staff", Roles = "SuperAdmin,Admin,Staff")]
+    [Authorize(Roles = "SuperAdmin,Admin,Staff")]
     public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateTableStatusRequest request)
     {
         var result = await _tableService.UpdateStatusAsync(id, request);
@@ -46,7 +46,7 @@ public class TableController : ControllerBase
 
     // Staff bấm "Reset bàn" khi khách rời đi
     [HttpPatch("{id:int}/reset")]
-    [Authorize(AuthenticationSchemes = "Staff", Roles = "SuperAdmin,Admin,Staff")]
+    [Authorize(Roles = "SuperAdmin,Admin,Staff")]
     public async Task<IActionResult> Reset(int id)
     {
         var result = await _tableService.ResetTableAsync(id);
@@ -54,7 +54,7 @@ public class TableController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
-    [Authorize(AuthenticationSchemes = "Staff", Roles = "SuperAdmin,Admin")]
+    [Authorize(Roles = "SuperAdmin,Admin,Staff")]
     public async Task<IActionResult> Delete(int id)
     {
         var result = await _tableService.DeleteAsync(id);

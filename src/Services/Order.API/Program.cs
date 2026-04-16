@@ -1,16 +1,20 @@
-using Order.API.API.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Order.API.API.Middleware;
 using Order.API.Application.Interfaces;
 using Order.API.Application.Service;
 using Order.API.Infrastructure.Persistence;
 using Order.API.Infrastructure.Utils;
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
+
+Microsoft.IdentityModel.Logging.IdentityModelEventSource.ShowPII = true;
+Microsoft.IdentityModel.Logging.IdentityModelEventSource.LogCompleteSecurityArtifact = true;
 var builder = WebApplication.CreateBuilder(args);
 
 // ─── EF Core ──────────────────────────────────────────
@@ -24,82 +28,66 @@ var guestJwtSettings = builder.Configuration.GetSection("GuestJwt").Get<GuestJwt
 builder.Services.AddSingleton(guestJwtSettings);
 builder.Services.AddSingleton<IGuestJwtUtil, GuestJwtUtil>();
 
-// ─── Authentication — 2 schemes ───────────────────────
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultScheme = "Staff";
-    options.DefaultChallengeScheme = "Staff";
-    options.DefaultForbidScheme = "Staff";
-})
-    .AddJwtBearer("Staff", options =>
+// ─── JWT (chỉ validate, không issue) ──────────────────
+var jwtIssuer = builder.Configuration["Jwt:Issuer"];
+var jwtAudience = builder.Configuration["Jwt:Audience"];
+var jwtSecret = builder.Configuration["Jwt:AccessTokenSecret"];
+
+JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
+            RoleClaimType = "role",
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["StaffJwt:AccessTokenSecret"]!)),
+                Encoding.UTF8.GetBytes(jwtSecret!)),
             ValidateIssuer = true,
-            ValidIssuer = builder.Configuration["StaffJwt:Issuer"],
+            ValidIssuer = jwtIssuer,
             ValidateAudience = true,
-            ValidAudience = builder.Configuration["StaffJwt:Audience"],
+            ValidAudience = jwtAudience,
             ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero
         };
+
         options.Events = new JwtBearerEvents
         {
-            OnChallenge = async ctx =>
+            OnAuthenticationFailed = ctx =>
             {
-                ctx.HandleResponse();
-                ctx.Response.StatusCode = 401;
-                ctx.Response.ContentType = "application/json";
-                await ctx.Response.WriteAsync(JsonSerializer.Serialize(
-                    new { message = "Chưa đăng nhập hoặc token không hợp lệ", statusCode = 401 },
+
+                var token = ctx.Request.Headers["Authorization"].ToString();
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = ctx =>
+            {
+                var claims = ctx.Principal?.Claims
+                    .Select(c => $"{c.Type}={c.Value}");
+                Console.WriteLine($"✅ Claims: {string.Join(", ", claims ?? [])}");
+                return Task.CompletedTask;
+            },
+            OnChallenge = async context =>
+            {
+                context.HandleResponse();
+                context.Response.StatusCode = 401;
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsync(JsonSerializer.Serialize(
+                    new { message = "Bạn chưa đăng nhập hoặc token không hợp lệ", statusCode = 401 },
                     new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
             },
-            OnForbidden = async ctx =>
+            OnForbidden = async context =>
             {
-                ctx.Response.StatusCode = 403;
-                ctx.Response.ContentType = "application/json";
-                await ctx.Response.WriteAsync(JsonSerializer.Serialize(
-                    new { message = "Không có quyền thực hiện hành động này", statusCode = 403 },
+                context.Response.StatusCode = 403;
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsync(JsonSerializer.Serialize(
+                    new { message = "Bạn không có quyền thực hiện hành động này", statusCode = 403 },
                     new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
             }
         };
-    })
-    .AddJwtBearer("Guest", options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(guestJwtSettings.AccessTokenSecret)),
-            ValidateIssuer = true,
-            ValidIssuer = guestJwtSettings.Issuer,
-            ValidateAudience = true,
-            ValidAudience = guestJwtSettings.Audience,
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero
-        };
     });
-builder.Services.AddAuthorization(options =>
-{
-    // Default policy: thử cả 2 schemes
-    options.DefaultPolicy = new AuthorizationPolicyBuilder()
-        .AddAuthenticationSchemes("Staff", "Guest")
-        .RequireAuthenticatedUser()
-        .Build();
 
-    // Policy riêng cho Guest endpoints
-    options.AddPolicy("GuestOnly", policy => policy
-        .AddAuthenticationSchemes("Guest")
-        .RequireAuthenticatedUser()
-        .RequireRole("Guest"));
-
-    // Policy riêng cho Staff endpoints
-    options.AddPolicy("StaffOnly", policy => policy
-        .AddAuthenticationSchemes("Staff")
-        .RequireAuthenticatedUser());
-});
+builder.Services.AddAuthorization();
 
 // ─── Services ─────────────────────────────────────────
 builder.Services.AddScoped<TableService>();
@@ -125,7 +113,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 app.UseCors();
 app.MapOpenApi();
 app.UseSwaggerUI(o => o.SwaggerEndpoint("/openapi/v1.json", "Order API"));

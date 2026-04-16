@@ -13,7 +13,7 @@ public class OrderController : ControllerBase
     public OrderController(OrderService orderService) => _orderService = orderService;
 
     [HttpGet]
-    [Authorize(AuthenticationSchemes = "Staff", Roles = "SuperAdmin,Admin,Staff")]
+    [Authorize(Roles = "SuperAdmin,Admin,Staff")]
     public async Task<IActionResult> GetAll()
     {
         var result = await _orderService.GetAllAsync();
@@ -21,7 +21,7 @@ public class OrderController : ControllerBase
     }
 
     [HttpGet("my-orders")]
-    [Authorize(AuthenticationSchemes = "Guest", Roles = "Guest")]
+    [Authorize(Roles = "Guest")]
     public async Task<IActionResult> GetMyOrders()
     {
         var (guestId, sessionId) = GetGuestClaims();
@@ -30,7 +30,7 @@ public class OrderController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(AuthenticationSchemes = "Guest", Roles = "Guest")]
+    [Authorize(Roles = "Guest")]
     public async Task<IActionResult> Create([FromBody] CreateOrderRequest request)
     {
         var (guestId, sessionId) = GetGuestClaims();
@@ -39,7 +39,7 @@ public class OrderController : ControllerBase
     }
 
     [HttpPatch("{id:int}/status")]
-    [Authorize(AuthenticationSchemes = "Staff", Roles = "SuperAdmin,Admin,Staff")]
+    [Authorize(Roles = "SuperAdmin,Admin,Staff")]
     public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateOrderStatusRequest request)
     {
         var result = await _orderService.UpdateStatusAsync(id, request);

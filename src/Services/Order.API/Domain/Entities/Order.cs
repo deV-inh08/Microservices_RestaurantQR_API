@@ -17,5 +17,10 @@
         public int Quantity { get; set; }
         public OrderStatus Status { get; set; } = OrderStatus.Pending;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+        // Navigation
+        public Guest Guest { get; set; } = null!;
+        public Table Table { get; set; } = null!;
     }
 }

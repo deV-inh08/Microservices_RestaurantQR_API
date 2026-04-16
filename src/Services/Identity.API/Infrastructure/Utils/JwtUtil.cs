@@ -33,8 +33,8 @@ namespace Identity.API.Infrastructure.Utils
             var claims = new[]
             {
                 new Claim("userId", account.Id.ToString()),
-                new Claim(ClaimTypes.Role, account.Role.ToString()),
-                new Claim(ClaimTypes.Email, account.Email),
+                new Claim("role", account.Role.ToString()),
+                new Claim("email", account.Email.ToString()),
                 new Claim("tokenType", "AccessToken"),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };

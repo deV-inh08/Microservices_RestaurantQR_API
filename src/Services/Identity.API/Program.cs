@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Text.Json;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -44,6 +45,26 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = jwtSettings.Audience,
             ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero
+        };
+
+        // Custom Forbidden Error
+        options.Events = new JwtBearerEvents
+        {
+            OnForbidden = async (context) =>
+            {
+                context.Response.StatusCode = 403;
+                context.Response.ContentType = "application/json";
+
+                var response = JsonSerializer.Serialize(new
+                {
+                    message = "Permission denied",
+                    statusCode = 403
+                }, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+                await context.Response.WriteAsync(response);
+            }
         };
     });
 
@@ -108,6 +129,7 @@ app.UseMiddleware<GlobalExceptionMiddleware>();
 //{
 
 //}
+app.UseHttpsRedirection();
 
 app.UseCors();
 app.MapOpenApi();
@@ -118,6 +140,5 @@ app.UseSwaggerUI(options =>
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-app.UseHttpsRedirection();
 
 app.Run();

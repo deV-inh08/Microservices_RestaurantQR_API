@@ -115,10 +115,10 @@ public class AccountService
     public async Task<AccountDto> CreateStaffAsync(CreateStaffRequest request)
     {
         if (request.Password != request.ConfirmPassword)
-            throw new ArgumentException("Mật khẩu xác nhận không khớp");
+            throw new ArgumentException("Confirm password incorrect");
 
         if (await _db.Accounts.AnyAsync(a => a.Email == request.Email.ToLower()))
-            throw new ArgumentException("Email đã tồn tại");
+            throw new ArgumentException("Email is exist");
 
         var account = new Account
         {

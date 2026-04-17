@@ -52,8 +52,10 @@ public record OrderDto(
     DateTime UpdatedAt);
 
 public record CreateOrderRequest(
+      int? TableId,
     int DishSnapshotId,
     int Quantity);
+
 
 public record UpdateOrderStatusRequest(
     OrderStatus Status,

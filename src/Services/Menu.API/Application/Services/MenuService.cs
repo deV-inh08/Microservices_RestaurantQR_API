@@ -52,6 +52,19 @@ public class MenuService
 
         _db.Dishes.Add(dish);
         await _db.SaveChangesAsync();
+
+
+        // Tạo snapshot đầu tiên ngay khi tạo món
+        _db.DishSnapshots.Add(new DishSnapshot
+        {
+            DishId = dish.Id,
+            Name = dish.Name,
+            Price = dish.Price,
+            Image = dish.Image,
+            Description = dish.Description,
+            CreatedAt = DateTime.UtcNow
+        });
+        await _db.SaveChangesAsync();
         return ToDto(dish);
     }
 

@@ -30,12 +30,23 @@ public class OrderController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Guest")]
+    [Authorize(Roles = "Guest,Staff,Admin")]
     public async Task<IActionResult> Create([FromBody] CreateOrderRequest request)
     {
-        var (guestId, sessionId) = GetGuestClaims();
-        var result = await _orderService.CreateAsync(guestId, sessionId, request);
-        return Ok(new { message = "Đặt món thành công", data = result });
+        var role = HttpContext.User.FindFirst("role")?.Value
+            ?? throw new UnauthorizedAccessException("Token invalid");
+        if (role == "Guest")
+        {
+            var (guestId, sessionId) = GetGuestClaims();
+            var result = await _orderService.CreateAsync(guestId, sessionId, request);
+            return Ok(new { message = "Đặt món thành công", data = result });
+
+        }
+        else
+        {
+            var result = await _orderService.CreateAsStaffAsync(request);
+            return Ok(new { message = "Đặt món thành công", data = result });
+        }
     }
 
     [HttpPatch("{id:int}/status")]
@@ -49,10 +60,11 @@ public class OrderController : ControllerBase
     private (int guestId, Guid sessionId) GetGuestClaims()
     {
         var guestId = int.Parse(HttpContext.User.FindFirst("guestId")?.Value
-            ?? throw new UnauthorizedAccessException("Token không hợp lệ"));
+            ?? throw new UnauthorizedAccessException("Token invalid"));
 
         var sessionId = Guid.Parse(HttpContext.User.FindFirst("sessionId")?.Value
-            ?? throw new UnauthorizedAccessException("Token không hợp lệ"));
+            ?? throw new UnauthorizedAccessException("Token invalid"));
+
 
         return (guestId, sessionId);
     }

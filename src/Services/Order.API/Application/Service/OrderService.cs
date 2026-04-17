@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Order.API.Application.DTOs;
+using Order.API.Domain.Entities;
 using Order.API.Infrastructure.Persistence;
 
 namespace Order.API.Application.Service;
@@ -68,6 +69,46 @@ public class OrderService
         return ToDto(order);
     }
 
+
+    public async Task<OrderDto> CreateAsStaffAsync(CreateOrderRequest request)
+    {
+        if (request.Quantity <= 0)
+            throw new ArgumentException("Số lượng phải lớn hơn 0");
+
+        if (request.TableId is null)
+            throw new ArgumentException("TableId là bắt buộc khi Staff tạo order");
+
+        var table = await _db.Tables.FindAsync(request.TableId)
+            ?? throw new KeyNotFoundException("Bàn không tồn tại");
+
+        if (table.Status != TableStatus.Occupied)
+            throw new ArgumentException("Bàn chưa có khách");
+
+        // Tìm guest mới nhất của bàn này
+        var guest = await _db.Guests
+            .Where(g => g.TableId == request.TableId)
+            .OrderByDescending(g => g.CreatedAt)
+            .FirstOrDefaultAsync()
+            ?? throw new KeyNotFoundException("Không tìm thấy khách tại bàn này");
+
+        var order = new Domain.Entities.Order
+        {
+            GuestId = guest.Id,
+            TableId = request.TableId.Value,
+            DishSnapshotId = request.DishSnapshotId,
+            Quantity = request.Quantity,
+            Status = Domain.Entities.OrderStatus.Pending,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        await _db.Entry(order).Reference(o => o.Guest).LoadAsync();
+        await _db.Entry(order).Reference(o => o.Table).LoadAsync();
+        return ToDto(order);
+    }
     public async Task<OrderDto> UpdateStatusAsync(int id, UpdateOrderStatusRequest request)
     {
         var order = await _db.Orders

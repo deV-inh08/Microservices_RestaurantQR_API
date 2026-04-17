@@ -12,8 +12,8 @@ using System.Text.Json.Serialization;
 
 
 // Turn off default claim mapping (sub -> nameidentifier, etc.) to keep original claim names from token
-JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
-JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
+Microsoft.IdentityModel.Logging.IdentityModelEventSource.ShowPII = true;
+Microsoft.IdentityModel.Logging.IdentityModelEventSource.LogCompleteSecurityArtifact = true;
 
 
 var builder = WebApplication.CreateBuilder(args);

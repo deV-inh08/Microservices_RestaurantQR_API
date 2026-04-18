@@ -17,7 +17,7 @@ public class OrderController : ControllerBase
     public async Task<IActionResult> GetAll()
     {
         var result = await _orderService.GetAllAsync();
-        return Ok(new { message = "Lấy danh sách order thành công", data = result });
+        return Ok(new { message = "Get all orders successfully", data = result });
     }
 
     [HttpGet("my-orders")]
@@ -26,7 +26,7 @@ public class OrderController : ControllerBase
     {
         var (guestId, sessionId) = GetGuestClaims();
         var result = await _orderService.GetByGuestAsync(guestId);
-        return Ok(new { message = "Lấy orders thành công", data = result });
+        return Ok(new { message = "Get my orders successfully", data = result });
     }
 
     [HttpPost]
@@ -39,13 +39,13 @@ public class OrderController : ControllerBase
         {
             var (guestId, sessionId) = GetGuestClaims();
             var result = await _orderService.CreateAsync(guestId, sessionId, request);
-            return Ok(new { message = "Đặt món thành công", data = result });
+            return Ok(new { message = "Order successfully", data = result });
 
         }
         else
         {
             var result = await _orderService.CreateAsStaffAsync(request);
-            return Ok(new { message = "Đặt món thành công", data = result });
+            return Ok(new { message = "Order successfully", data = result });
         }
     }
 
@@ -54,7 +54,7 @@ public class OrderController : ControllerBase
     public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateOrderStatusRequest request)
     {
         var result = await _orderService.UpdateStatusAsync(id, request);
-        return Ok(new { message = "Cập nhật trạng thái thành công", data = result });
+        return Ok(new { message = "Update status successfully", data = result });
     }
 
     private (int guestId, Guid sessionId) GetGuestClaims()

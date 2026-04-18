@@ -17,7 +17,7 @@ public class TableController : ControllerBase
     public async Task<IActionResult> GetAll()
     {
         var result = await _tableService.GetAllAsync();
-        return Ok(new { message = "Lấy danh sách bàn thành công", data = result });
+        return Ok(new { message = "Get all tables successfully", data = result });
     }
 
     [HttpGet("{id:int}")]
@@ -25,7 +25,7 @@ public class TableController : ControllerBase
     public async Task<IActionResult> GetById(int id)
     {
         var result = await _tableService.GetByIdAsync(id);
-        return Ok(new { message = "Lấy thông tin bàn thành công", data = result });
+        return Ok(new { message = "Get table by id successfully", data = result });
     }
 
     [HttpPost]
@@ -33,7 +33,7 @@ public class TableController : ControllerBase
     public async Task<IActionResult> Create([FromBody] CreateTableRequest request)
     {
         var result = await _tableService.CreateAsync(request);
-        return Ok(new { message = "Tạo bàn thành công", data = result });
+        return Ok(new { message = "Create table successfully", data = result });
     }
 
     [HttpPatch("{id:int}/status")]
@@ -41,16 +41,16 @@ public class TableController : ControllerBase
     public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateTableStatusRequest request)
     {
         var result = await _tableService.UpdateStatusAsync(id, request);
-        return Ok(new { message = "Cập nhật trạng thái thành công", data = result });
+        return Ok(new { message = "Update status successfully", data = result });
     }
 
-    // Staff bấm "Reset bàn" khi khách rời đi
+    // Staff click "Reset" when guest go out
     [HttpPatch("{id:int}/reset")]
     [Authorize(Roles = "SuperAdmin,Admin,Staff")]
     public async Task<IActionResult> Reset(int id)
     {
         var result = await _tableService.ResetTableAsync(id);
-        return Ok(new { message = "Reset bàn thành công", data = result });
+        return Ok(new { message = "Reset table successfully", data = result });
     }
 
     [HttpDelete("{id:int}")]
@@ -58,6 +58,6 @@ public class TableController : ControllerBase
     public async Task<IActionResult> Delete(int id)
     {
         var result = await _tableService.DeleteAsync(id);
-        return Ok(new { message = "Xóa bàn thành công", data = result });
+        return Ok(new { message = "Delete table successfully", data = result });
     }
 }

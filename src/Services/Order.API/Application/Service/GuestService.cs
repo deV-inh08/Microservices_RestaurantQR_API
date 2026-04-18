@@ -23,10 +23,10 @@ public class GuestService
     {
         var table = await _db.Tables
             .FirstOrDefaultAsync(t => t.Number == request.TableNumber)
-            ?? throw new KeyNotFoundException("Bàn không tồn tại");
+            ?? throw new KeyNotFoundException("Table not found");
 
         if (table.Status != TableStatus.Available)
-            throw new ArgumentException("Bàn hiện không thể nhận khách");
+            throw new ArgumentException("Table is not available");
 
         var guest = new Guest
         {
@@ -59,7 +59,7 @@ public class GuestService
         }
         catch
         {
-            throw new UnauthorizedAccessException("Refresh token không hợp lệ hoặc đã hết hạn");
+            throw new UnauthorizedAccessException("Refresh token is invalid or has expired");
         }
 
         var guestId = int.Parse(principal.FindFirst("guestId")!.Value);
@@ -68,12 +68,12 @@ public class GuestService
         var guest = await _db.Guests
             .Include(g => g.Table)
             .FirstOrDefaultAsync(g => g.Id == guestId)
-            ?? throw new UnauthorizedAccessException("Phiên đã hết hạn, vui lòng quét QR lại");
+            ?? throw new UnauthorizedAccessException("Session has expired, please scan the QR code again");
 
         // So sánh sessionId trong token với sessionId hiện tại của bàn
         // Nếu Staff đã reset bàn → SessionId đổi → từ chối
         if (guest.Table.SessionId != tokenSessionId)
-            throw new UnauthorizedAccessException("Phiên đã hết hạn, vui lòng quét QR lại");
+            throw new UnauthorizedAccessException("Session has expired, please scan the QR code again");
 
         var newAccessToken = _jwtUtil.GenerateAccessToken(guest, guest.Table.SessionId);
         var newRefreshToken = _jwtUtil.GenerateRefreshToken(guest, guest.Table.SessionId);

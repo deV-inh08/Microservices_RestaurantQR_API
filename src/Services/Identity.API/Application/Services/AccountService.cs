@@ -69,10 +69,10 @@ public class AccountService
             throw new ArgumentException("Password");
 
         var account = await _db.Accounts.FindAsync(accountId)
-            ?? throw new KeyNotFoundException("Tài khoản không tồn tại");
+            ?? throw new KeyNotFoundException("Account not found");
 
         if (!_passwordService.Verify(request.OldPassword, account.Password))
-            throw new UnauthorizedAccessException("Mật khẩu cũ không đúng");
+            throw new UnauthorizedAccessException("Old password is incorrect");
 
         account.Password = _passwordService.Hash(request.NewPassword);
         account.UpdatedAt = DateTime.UtcNow;
@@ -90,10 +90,10 @@ public class AccountService
     public async Task<AccountDto> CreateAdminAsync(CreateAdminRequest request)
     {
         if (request.Password != request.ConfirmPassword)
-            throw new ArgumentException("Mật khẩu xác nhận không khớp");
+            throw new ArgumentException("Password confirmation does not match");
 
         if (await _db.Accounts.AnyAsync(a => a.Email == request.Email.ToLower()))
-            throw new ArgumentException("Email đã tồn tại");
+            throw new ArgumentException("Email already exists");
 
         var account = new Account
         {
@@ -140,7 +140,7 @@ public class AccountService
     public async Task<AccountDto> UpdateEmployeeAsync(int id, UpdateEmployeeRequest request)
     {
         var account = await _db.Accounts.FindAsync(id)
-            ?? throw new KeyNotFoundException("Tài khoản không tồn tại");
+            ?? throw new KeyNotFoundException("Account not found");
 
         account.Name = request.Name.Trim();
         account.Email = request.Email.ToLower().Trim();
@@ -154,7 +154,7 @@ public class AccountService
     public async Task<AccountDto> DeleteAsync(int id)
     {
         var account = await _db.Accounts.FindAsync(id)
-            ?? throw new KeyNotFoundException("Tài khoản không tồn tại");
+            ?? throw new KeyNotFoundException("Account not found");
 
         _db.Accounts.Remove(account);
         await _db.SaveChangesAsync();

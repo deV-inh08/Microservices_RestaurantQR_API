@@ -28,7 +28,7 @@ public class MenuService
     public async Task<DishDto> GetByIdAsync(int id)
     {
         var dish = await _db.Dishes.FindAsync(id)
-            ?? throw new KeyNotFoundException("Món ăn không tồn tại");
+            ?? throw new KeyNotFoundException("Dish not found");
 
         return ToDto(dish);
     }
@@ -38,7 +38,7 @@ public class MenuService
     public async Task<DishDto> CreateAsync(CreateDishRequest request)
     {
         if (request.Price <= 0)
-            throw new ArgumentException("Giá món ăn phải lớn hơn 0");
+            throw new ArgumentException("Dish price must be greater than 0");
 
         var dish = new Dish
         {
@@ -71,10 +71,10 @@ public class MenuService
     public async Task<DishDto> UpdateAsync(int id, UpdateDishRequest request)
     {
         var dish = await _db.Dishes.FindAsync(id)
-            ?? throw new KeyNotFoundException("Món ăn không tồn tại");
+            ?? throw new KeyNotFoundException("Dish not found");
 
         if (request.Price <= 0)
-            throw new ArgumentException("Giá món ăn phải lớn hơn 0");
+            throw new ArgumentException("Dish price must be greater than 0");
 
         // Khi update giá/tên → tạo snapshot để Order.API có thể
         // reference lại giá tại thời điểm đặt hàng (immutable history)
@@ -101,11 +101,10 @@ public class MenuService
     public async Task<DishDto> UpdateStatusAsync(int id, UpdateDishStatusRequest request)
     {
         var dish = await _db.Dishes.FindAsync(id)
-            ?? throw new KeyNotFoundException("Món ăn không tồn tại");
+            ?? throw new KeyNotFoundException("Dish not found");
 
         if (!Enum.IsDefined(typeof(DishStatus), request.Status))
-            throw new ArgumentException($"Trạng thái không hợp lệ. Dùng: Available hoặc OutOfStock");
-
+            throw new ArgumentException($"Invalid status. Use: Available or OutOfStock");
         dish.Status = request.Status;
         await _db.SaveChangesAsync();
         return ToDto(dish);
@@ -114,7 +113,7 @@ public class MenuService
     public async Task<DishDto> DeleteAsync(int id)
     {
         var dish = await _db.Dishes.FindAsync(id)
-            ?? throw new KeyNotFoundException("Món ăn không tồn tại");
+            ?? throw new KeyNotFoundException("Dish not found");
 
         _db.Dishes.Remove(dish);
         await _db.SaveChangesAsync();

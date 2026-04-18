@@ -32,7 +32,7 @@ public class GlobalExceptionMiddleware
             UnauthorizedAccessException e => (401, e.Message),
             KeyNotFoundException e => (404, e.Message),
             ArgumentException e => (422, e.Message),
-            _ => (500, "Lỗi hệ thống")
+            _ => (500, "System Error")
         };
 
         if (statusCode >= 500)

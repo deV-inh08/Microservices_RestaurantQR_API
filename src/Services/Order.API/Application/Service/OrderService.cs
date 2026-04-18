@@ -73,23 +73,23 @@ public class OrderService
     public async Task<OrderDto> CreateAsStaffAsync(CreateOrderRequest request)
     {
         if (request.Quantity <= 0)
-            throw new ArgumentException("Số lượng phải lớn hơn 0");
+            throw new ArgumentException("Quantity must be greater than 0");
 
         if (request.TableId is null)
-            throw new ArgumentException("TableId là bắt buộc khi Staff tạo order");
+            throw new ArgumentException("TableId is required when Staff creates an order");
 
         var table = await _db.Tables.FindAsync(request.TableId)
-            ?? throw new KeyNotFoundException("Bàn không tồn tại");
+            ?? throw new KeyNotFoundException("Table not found");
 
         if (table.Status != TableStatus.Occupied)
-            throw new ArgumentException("Bàn chưa có khách");
+            throw new ArgumentException("Table is not occupied");
 
         // Tìm guest mới nhất của bàn này
         var guest = await _db.Guests
             .Where(g => g.TableId == request.TableId)
             .OrderByDescending(g => g.CreatedAt)
             .FirstOrDefaultAsync()
-            ?? throw new KeyNotFoundException("Không tìm thấy khách tại bàn này");
+            ?? throw new KeyNotFoundException("Guest not found");
 
         var order = new Domain.Entities.Order
         {
@@ -115,7 +115,7 @@ public class OrderService
             .Include(o => o.Guest)
             .Include(o => o.Table)
             .FirstOrDefaultAsync(o => o.Id == id)
-            ?? throw new KeyNotFoundException("Order không tồn tại");
+            ?? throw new KeyNotFoundException("Order not found");
 
         order.Status = request.Status;
         order.AccountId = request.AccountId;

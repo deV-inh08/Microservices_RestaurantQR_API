@@ -73,7 +73,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 context.Response.StatusCode = 401;
                 context.Response.ContentType = "application/json";
                 await context.Response.WriteAsync(JsonSerializer.Serialize(
-                    new { message = "Bạn chưa đăng nhập hoặc token không hợp lệ", statusCode = 401 },
+                    new { message = "You are not authenticated or your token is invalid", statusCode = 401 },
                     new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
             },
             OnForbidden = async context =>
@@ -81,7 +81,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 context.Response.StatusCode = 403;
                 context.Response.ContentType = "application/json";
                 await context.Response.WriteAsync(JsonSerializer.Serialize(
-                    new { message = "Bạn không có quyền thực hiện hành động này", statusCode = 403 },
+                    new { message = "You do not have permission to perform this action", statusCode = 403 },
                     new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
             }
         };

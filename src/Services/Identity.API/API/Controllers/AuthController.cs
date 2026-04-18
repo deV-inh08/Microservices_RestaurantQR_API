@@ -29,7 +29,7 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
     {
         var result = await _authService.RefreshTokenAsync(request.RefreshToken);
-        return Ok(new { message = "Token đã được làm mới", data = result });
+        return Ok(new { message = "Token was refreshed successfully", data = result });
     }
 
     [HttpPost("logout")]
@@ -37,6 +37,6 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Logout([FromBody] RefreshTokenRequest request)
     {
         await _authService.LogoutAsync(request.RefreshToken);
-        return Ok(new { message = "Đăng xuất thành công" });
+        return Ok(new { message = "Logout successfully" });
     }
 }

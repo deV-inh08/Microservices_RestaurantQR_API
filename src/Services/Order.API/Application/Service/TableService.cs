@@ -20,14 +20,14 @@ public class TableService
     public async Task<TableDto> GetByIdAsync(int id)
     {
         var table = await _db.Tables.FindAsync(id)
-            ?? throw new KeyNotFoundException("Bàn không tồn tại");
+            ?? throw new KeyNotFoundException("Table not found");
         return ToDto(table);
     }
 
     public async Task<TableDto> CreateAsync(CreateTableRequest request)
     {
         if (await _db.Tables.AnyAsync(t => t.Number == request.Number))
-            throw new ArgumentException($"Bàn số {request.Number} đã tồn tại");
+            throw new ArgumentException($"Table number {request.Number} already exists");
 
         var table = new Table
         {
@@ -47,7 +47,7 @@ public class TableService
     public async Task<TableDto> UpdateStatusAsync(int id, UpdateTableStatusRequest request)
     {
         var table = await _db.Tables.FindAsync(id)
-            ?? throw new KeyNotFoundException("Bàn không tồn tại");
+            ?? throw new KeyNotFoundException("Table not found");
 
         table.Status = request.Status;
         table.UpdatedAt = DateTime.UtcNow;
@@ -59,7 +59,7 @@ public class TableService
     public async Task<TableDto> ResetTableAsync(int id)
     {
         var table = await _db.Tables.FindAsync(id)
-            ?? throw new KeyNotFoundException("Bàn không tồn tại");
+            ?? throw new KeyNotFoundException("Table not found");
 
         table.SessionId = Guid.NewGuid(); // Token cũ hết hiệu lực
         table.Status = TableStatus.Hidden;
@@ -72,7 +72,7 @@ public class TableService
     public async Task<TableDto> DeleteAsync(int id)
     {
         var table = await _db.Tables.FindAsync(id)
-            ?? throw new KeyNotFoundException("Bàn không tồn tại");
+            ?? throw new KeyNotFoundException("Table not found");
 
         _db.Tables.Remove(table);
         await _db.SaveChangesAsync();

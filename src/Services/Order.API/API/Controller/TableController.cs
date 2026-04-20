@@ -60,4 +60,12 @@ public class TableController : ControllerBase
         var result = await _tableService.DeleteAsync(id);
         return Ok(new { message = "Delete table successfully", data = result });
     }
+
+    [HttpGet("{id:int}/public")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetPublic(int id)
+    {
+        var table = await _tableService.GetByIdPublicAsync(id);
+        return Ok(new { message = "Get table successfully", data = table });
+    }
 }

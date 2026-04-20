@@ -144,9 +144,9 @@ public class OrderService
          o.Id, o.GuestId, o.Guest.Name,
          o.TableId, o.Table.Number,
          o.DishSnapshotId,
-         o.DishName,   // ← đọc từ column
-         o.DishPrice,  // ← đọc từ column
-         o.DishImage,  // ← đọc từ column
+         o.DishName,
+         o.DishPrice,
+         o.DishImage,
          o.AccountId,
          o.Quantity, o.Status.ToString(),
          o.CreatedAt, o.UpdatedAt);

@@ -30,7 +30,7 @@ public class OrderController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Guest,Staff,Admin")]
+    [Authorize(Roles = "Guest,Staff,Admin,SuperAdmin")]
     public async Task<IActionResult> Create([FromBody] CreateOrderRequest request)
     {
         var role = HttpContext.User.FindFirst("role")?.Value

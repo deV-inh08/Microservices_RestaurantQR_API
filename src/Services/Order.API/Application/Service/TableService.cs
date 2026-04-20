@@ -79,6 +79,19 @@ public class TableService
         return ToDto(table);
     }
 
+    public async Task<object> GetByIdPublicAsync(int id)
+    {
+        var table = await _db.Tables.FindAsync(id)
+            ?? throw new KeyNotFoundException("Table not found");
+
+        return new
+        {
+            table.Id,
+            table.Number,
+            table.Status  // FE check Hidden/Available
+        };
+    }
+
     public static TableDto ToDto(Table t) => new(
         t.Id, t.Number, t.Capacity, t.Status.ToString(),
         t.IsVisibleOnReservation, t.CreatedAt, t.UpdatedAt);

@@ -42,7 +42,8 @@ public class MenuController : ControllerBase
     public async Task<IActionResult> Create([FromForm] CreateDishRequest request)
     {
         var result = await _menuService.CreateAsync(request);
-        return Ok(new { message = "Tạo món ăn thành công", data = result });
+        return CreatedAtAction(nameof(GetById), new { id = result.Id }, new { message = "Tạo món ăn thành công", data = result });
+
     }
 
     [HttpPut("{id:int}")]

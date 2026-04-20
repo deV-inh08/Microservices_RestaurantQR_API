@@ -49,3 +49,15 @@ public record UpdateDishRequest(
     );
 
 public record UpdateDishStatusRequest(DishStatus Status);
+
+
+public record DishSnapshotDto(
+    int Id,
+    string Name,
+    decimal Price,
+    string? Description,
+    string Category,
+    string? ImagePath,
+    int DishId,
+    DateTime CreatedAt
+);

@@ -1,6 +1,7 @@
 ﻿using Menu.API.Application.DTOs;
 using Menu.API.Domain.Entities;
 using Menu.API.Infrastructure.Persistence;
+using Menu.API.Infrastructure.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace Menu.API.Application.Services;
@@ -8,10 +9,12 @@ namespace Menu.API.Application.Services;
 public class MenuService
 {
     private readonly MenuDbContext _db;
+    private readonly IFileUploadUtil _fileUploadUtil;
 
-    public MenuService(MenuDbContext db)
+    public MenuService(MenuDbContext db, IFileUploadUtil fileUploadUtil)
     {
         _db = db;
+        _fileUploadUtil = fileUploadUtil;
     }
 
     // ─── Query ────────────────────────────────────────
@@ -40,11 +43,19 @@ public class MenuService
         if (request.Price <= 0)
             throw new ArgumentException("Dish price must be greater than 0");
 
+        // Save image file if provided
+        string? imagePath = null;
+        if (request.Image != null)
+        {
+            imagePath = await _fileUploadUtil.SaveFileAsync(request.Image);
+        }
+
         var dish = new Dish
         {
             Name = request.Name.Trim(),
-            Price = request.Price,
-            Image = request.Image,
+            Price = (int)request.Price,
+            ImagePath = imagePath,
+            Category = request.Category,
             Description = request.Description,
             Status = DishStatus.Available,
             CreatedAt = DateTime.UtcNow
@@ -53,15 +64,15 @@ public class MenuService
         _db.Dishes.Add(dish);
         await _db.SaveChangesAsync();
 
-
         // Tạo snapshot đầu tiên ngay khi tạo món
         _db.DishSnapshots.Add(new DishSnapshot
         {
             DishId = dish.Id,
             Name = dish.Name,
             Price = dish.Price,
-            Image = dish.Image,
+            ImagePath = imagePath,
             Description = dish.Description,
+            Category = dish.Category,
             CreatedAt = DateTime.UtcNow
         });
         await _db.SaveChangesAsync();
@@ -78,13 +89,14 @@ public class MenuService
 
         // Khi update giá/tên → tạo snapshot để Order.API có thể
         // reference lại giá tại thời điểm đặt hàng (immutable history)
-        if (dish.Price != request.Price || dish.Name != request.Name.Trim())
+        if (dish.Price != request.Price || dish.Name != request.Name.Trim() || dish.Category != request.Category)
         {
             _db.DishSnapshots.Add(new DishSnapshot
             {
                 DishId = dish.Id,
                 Name = dish.Name,   // snapshot giá trị CŨ
-                Image = dish.Image,
+                ImagePath = dish.ImagePath,
+                Category = request.Category,
                 Description = dish.Description,
                 Price = dish.Price,
                 CreatedAt = DateTime.UtcNow
@@ -93,6 +105,20 @@ public class MenuService
 
         dish.Name = request.Name.Trim();
         dish.Price = request.Price;
+        dish.Category = request.Category;
+
+        // Handle image upload if new image provided
+        if (request.Image != null)
+        {
+            // Delete old image if exists
+            if (!string.IsNullOrEmpty(dish.ImagePath))
+            {
+                _fileUploadUtil.DeleteFile(dish.ImagePath);
+            }
+
+            // Save new image
+            dish.ImagePath = await _fileUploadUtil.SaveFileAsync(request.Image);
+        }
 
         await _db.SaveChangesAsync();
         return ToDto(dish);
@@ -115,6 +141,12 @@ public class MenuService
         var dish = await _db.Dishes.FindAsync(id)
             ?? throw new KeyNotFoundException("Dish not found");
 
+        // Delete image file if exists
+        if (!string.IsNullOrEmpty(dish.ImagePath))
+        {
+            _fileUploadUtil.DeleteFile(dish.ImagePath);
+        }
+
         _db.Dishes.Remove(dish);
         await _db.SaveChangesAsync();
         return ToDto(dish);
@@ -123,5 +155,5 @@ public class MenuService
     // ─── Mapping ──────────────────────────────────────
 
     public static DishDto ToDto(Dish d) => new(
-        d.Id, d.Name, d.Description, d.Image, d.Price, d.Status.ToString(), d.CreatedAt);
+        d.Id, d.Name, d.Description, d.ImagePath, d.Category, d.Price, d.Status.ToString(), d.CreatedAt);
 }

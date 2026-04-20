@@ -20,8 +20,9 @@ public class DishSnapshotConfiguration : IEntityTypeConfiguration<DishSnapshot>
 
         builder.Property(d => d.Description)
     .HasMaxLength(1000);
+        builder.Property(d => d.Category).HasMaxLength(1000);
 
-        builder.Property(d => d.Image)
+        builder.Property(d => d.ImagePath)
             .HasMaxLength(2048);
 
         builder.Property(s => s.DishId)

@@ -1,4 +1,6 @@
-﻿namespace Menu.API.Domain.Entities
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Menu.API.Domain.Entities
 {
     public class DishSnapshot
     {
@@ -6,8 +8,11 @@
         public string Name { get; set; } = string.Empty;
         public int Price { get; set; }
         public string? Description { get; set; }
-        public string Image { get; set; } = string.Empty;
+        public DishCategory Category { get; set; } = DishCategory.MainCourse;
+        public string? ImagePath { get; set; }
         public int DishId { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        [ForeignKey("DishId")]
+        public virtual Dish? Dish { get; set; }
     }
 }

@@ -5,7 +5,6 @@ using Identity.API.Domain.Entities;
 using Identity.API.Infrastructure.Persistence;
 using Identity.API.Infrastructure.Utils;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -129,7 +128,7 @@ app.UseMiddleware<GlobalExceptionMiddleware>();
 //{
 
 //}
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseCors();
 app.MapOpenApi();

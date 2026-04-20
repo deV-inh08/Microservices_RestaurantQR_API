@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Menu.API.API.Controllers;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("api/v1/[controller]/dishes")]
 public class MenuController : ControllerBase
 {
     private readonly MenuService _menuService;
@@ -37,8 +37,9 @@ public class MenuController : ControllerBase
     // ─── Admin/SuperAdmin ─────────────────────────────
 
     [HttpPost]
+    [Consumes("multipart/form-data")]
     [Authorize(Roles = "SuperAdmin,Admin")]
-    public async Task<IActionResult> Create([FromBody] CreateDishRequest request)
+    public async Task<IActionResult> Create([FromForm] CreateDishRequest request)
     {
         var result = await _menuService.CreateAsync(request);
         return Ok(new { message = "Tạo món ăn thành công", data = result });
@@ -68,3 +69,4 @@ public class MenuController : ControllerBase
         return Ok(new { message = "Xóa món ăn thành công", data = result });
     }
 }
+

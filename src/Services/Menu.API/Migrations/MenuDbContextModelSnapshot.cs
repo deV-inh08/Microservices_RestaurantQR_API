@@ -30,6 +30,10 @@ namespace Menu.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("Category")
+                        .HasMaxLength(1000)
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -37,8 +41,7 @@ namespace Menu.API.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<string>("Image")
-                        .IsRequired()
+                    b.Property<string>("ImagePath")
                         .HasMaxLength(2048)
                         .HasColumnType("nvarchar(2048)");
 
@@ -68,6 +71,10 @@ namespace Menu.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("Category")
+                        .HasMaxLength(1000)
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -78,8 +85,10 @@ namespace Menu.API.Migrations
                     b.Property<int>("DishId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Image")
-                        .IsRequired()
+                    b.Property<int?>("DishId1")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImagePath")
                         .HasMaxLength(2048)
                         .HasColumnType("nvarchar(2048)");
 
@@ -95,6 +104,8 @@ namespace Menu.API.Migrations
 
                     b.HasIndex("DishId");
 
+                    b.HasIndex("DishId1");
+
                     b.ToTable("DishSnapshots", (string)null);
                 });
 
@@ -105,6 +116,12 @@ namespace Menu.API.Migrations
                         .HasForeignKey("DishId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("Menu.API.Domain.Entities.Dish", "Dish")
+                        .WithMany()
+                        .HasForeignKey("DishId1");
+
+                    b.Navigation("Dish");
                 });
 
             modelBuilder.Entity("Menu.API.Domain.Entities.Dish", b =>

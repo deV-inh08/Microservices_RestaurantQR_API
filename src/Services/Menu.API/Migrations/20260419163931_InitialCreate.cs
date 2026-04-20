@@ -20,7 +20,8 @@ namespace Menu.API.Migrations
                     Name = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
                     Price = table.Column<int>(type: "int", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    Image = table.Column<string>(type: "nvarchar(2048)", maxLength: 2048, nullable: false),
+                    ImagePath = table.Column<string>(type: "nvarchar(2048)", maxLength: 2048, nullable: true),
+                    Category = table.Column<int>(type: "int", maxLength: 1000, nullable: false),
                     Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -38,9 +39,11 @@ namespace Menu.API.Migrations
                     Name = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
                     Price = table.Column<int>(type: "int", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    Image = table.Column<string>(type: "nvarchar(2048)", maxLength: 2048, nullable: false),
+                    Category = table.Column<int>(type: "int", maxLength: 1000, nullable: false),
+                    ImagePath = table.Column<string>(type: "nvarchar(2048)", maxLength: 2048, nullable: true),
                     DishId = table.Column<int>(type: "int", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    DishId1 = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -51,12 +54,22 @@ namespace Menu.API.Migrations
                         principalTable: "Dishes",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_DishSnapshots_Dishes_DishId1",
+                        column: x => x.DishId1,
+                        principalTable: "Dishes",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_DishSnapshots_DishId",
                 table: "DishSnapshots",
                 column: "DishId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DishSnapshots_DishId1",
+                table: "DishSnapshots",
+                column: "DishId1");
         }
 
         /// <inheritdoc />

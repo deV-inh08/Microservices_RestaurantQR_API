@@ -1,6 +1,7 @@
 using Menu.API.API.Middleware;
 using Menu.API.Application.Services;
 using Menu.API.Infrastructure.Persistence;
+using Menu.API.Infrastructure.Utils;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -74,6 +75,7 @@ builder.Services.AddAuthorization();
 
 
 // ─── Services ─────────────────────────────────────────
+builder.Services.AddScoped<IFileUploadUtil, FileUploadUtil>();
 builder.Services.AddScoped<MenuService>();
 
 // ─── Controllers + Swagger ────────────────────────────
@@ -102,7 +104,8 @@ using (var scope = app.Services.CreateScope())
 
 // ─── Pipeline (đúng thứ tự) ───────────────────────────
 app.UseMiddleware<GlobalExceptionMiddleware>();
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseCors();
 app.MapOpenApi();
 app.UseSwaggerUI(options =>

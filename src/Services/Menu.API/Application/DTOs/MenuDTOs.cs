@@ -43,7 +43,7 @@ public class CreateDishRequest
 public record UpdateDishRequest(
     string Name,
     string Description,
-    IFormFile? Image,
+    string? ImagePath,
     int Price,
     DishCategory Category
     );

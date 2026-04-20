@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Order.API.Application.DTOs;
 using Order.API.Domain.Entities;
+using Order.API.Infrastructure.ExternalServices;
 using Order.API.Infrastructure.Persistence;
 
 namespace Order.API.Application.Service;
@@ -8,8 +9,13 @@ namespace Order.API.Application.Service;
 public class OrderService
 {
     private readonly OrderDbContext _db;
+    private readonly MenuApiClient _menuApi;
 
-    public OrderService(OrderDbContext db) => _db = db;
+    public OrderService(OrderDbContext db, MenuApiClient menuApi)
+    {
+        _db = db;
+        _menuApi = menuApi;
+    }
 
     public async Task<List<OrderDto>> GetAllAsync()
     {
@@ -49,11 +55,15 @@ public class OrderService
         if (guest.Table.SessionId != tokenSessionId)
             throw new UnauthorizedAccessException("Phiên đã hết hạn, vui lòng quét QR lại");
 
+        var snapshot = await _menuApi.GetSnapshotAsync(request.DishSnapshotId);
         var order = new Domain.Entities.Order
         {
             GuestId = guestId,
             TableId = guest.TableId,
             DishSnapshotId = request.DishSnapshotId,
+            DishName = snapshot.Name,
+            DishPrice = snapshot.Price,
+            DishImage = snapshot.ImagePath,
             Quantity = request.Quantity,
             Status = Domain.Entities.OrderStatus.Pending,
             CreatedAt = DateTime.UtcNow,
@@ -91,11 +101,16 @@ public class OrderService
             .FirstOrDefaultAsync()
             ?? throw new KeyNotFoundException("Guest not found");
 
+        // ── Lấy snapshot data từ Menu.API ──────────────────────────
+        var snapshot = await _menuApi.GetSnapshotAsync(request.DishSnapshotId);
         var order = new Domain.Entities.Order
         {
             GuestId = guest.Id,
             TableId = request.TableId.Value,
             DishSnapshotId = request.DishSnapshotId,
+            DishName = snapshot.Name,
+            DishPrice = snapshot.Price,
+            DishImage = snapshot.ImagePath,
             Quantity = request.Quantity,
             Status = Domain.Entities.OrderStatus.Pending,
             CreatedAt = DateTime.UtcNow,
@@ -126,9 +141,13 @@ public class OrderService
     }
 
     private static OrderDto ToDto(Domain.Entities.Order o) => new(
-        o.Id, o.GuestId, o.Guest.Name,
-        o.TableId, o.Table.Number,
-        o.DishSnapshotId, o.AccountId,
-        o.Quantity, o.Status.ToString(),
-        o.CreatedAt, o.UpdatedAt);
+         o.Id, o.GuestId, o.Guest.Name,
+         o.TableId, o.Table.Number,
+         o.DishSnapshotId,
+         o.DishName,   // ← đọc từ column
+         o.DishPrice,  // ← đọc từ column
+         o.DishImage,  // ← đọc từ column
+         o.AccountId,
+         o.Quantity, o.Status.ToString(),
+         o.CreatedAt, o.UpdatedAt);
 }

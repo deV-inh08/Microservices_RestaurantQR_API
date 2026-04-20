@@ -29,7 +29,7 @@ public class TableController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin,Staff")]
+    [Authorize(Roles = "SuperAdmin,Admin,Staff")]
     public async Task<IActionResult> Create([FromBody] CreateTableRequest request)
     {
         var result = await _tableService.CreateAsync(request);

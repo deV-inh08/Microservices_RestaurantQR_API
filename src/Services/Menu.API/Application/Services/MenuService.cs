@@ -106,20 +106,15 @@ public class MenuService
         dish.Name = request.Name.Trim();
         dish.Price = request.Price;
         dish.Category = request.Category;
+        dish.Description = request.Description;
 
-        // Handle image upload if new image provided
-        if (request.Image != null)
+
+        // Cập nhật ImagePath nếu FE truyền giá trị mới (URL string)
+        // Nếu null → giữ nguyên ảnh cũ
+        if (request.ImagePath != null)
         {
-            // Delete old image if exists
-            if (!string.IsNullOrEmpty(dish.ImagePath))
-            {
-                _fileUploadUtil.DeleteFile(dish.ImagePath);
-            }
-
-            // Save new image
-            dish.ImagePath = await _fileUploadUtil.SaveFileAsync(request.Image);
+            dish.ImagePath = request.ImagePath;
         }
-
         await _db.SaveChangesAsync();
         return ToDto(dish);
     }
@@ -155,5 +150,5 @@ public class MenuService
     // ─── Mapping ──────────────────────────────────────
 
     public static DishDto ToDto(Dish d) => new(
-        d.Id, d.Name, d.Description, d.ImagePath, d.Category, d.Price, d.Status.ToString(), d.CreatedAt);
+        d.Id, d.Name, d.Description ?? string.Empty, d.ImagePath, d.Category, d.Price, d.Status.ToString(), d.CreatedAt);
 }

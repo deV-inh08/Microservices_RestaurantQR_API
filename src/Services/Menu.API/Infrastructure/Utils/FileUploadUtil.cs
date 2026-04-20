@@ -32,8 +32,13 @@ public class FileUploadUtil : IFileUploadUtil
 
         try
         {
+            var webRootPath = _environment.WebRootPath
+    ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+
+            if (!Directory.Exists(webRootPath))
+                Directory.CreateDirectory(webRootPath);
             // Create folder if not exists
-            var folderPath = Path.Combine(_environment.WebRootPath, folderName);
+            var folderPath = Path.Combine(webRootPath, folderName);
             if (!Directory.Exists(folderPath))
                 Directory.CreateDirectory(folderPath);
 

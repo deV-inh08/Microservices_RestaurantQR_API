@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using Order.API.API.Middleware;
 using Order.API.Application.Interfaces;
 using Order.API.Application.Service;
+using Order.API.Infrastructure.ExternalServices;
 using Order.API.Infrastructure.Persistence;
 using Order.API.Infrastructure.Utils;
 using System.IdentityModel.Tokens.Jwt;
@@ -103,6 +104,12 @@ builder.Services.AddOpenApi();
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(p =>
         p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+builder.Services.AddHttpClient<MenuApiClient>(client =>
+{
+    // Đọc từ config, không hardcode
+    client.BaseAddress = new Uri(builder.Configuration["MenuApi:BaseUrl"]
+        ?? throw new InvalidOperationException("MenuApi:BaseUrl is not configured"));
+});
 
 var app = builder.Build();
 

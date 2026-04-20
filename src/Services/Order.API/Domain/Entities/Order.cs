@@ -19,6 +19,11 @@
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+        // ── Snapshot data — lưu tại thời điểm order, không thay đổi sau này ──
+        public string DishName { get; set; } = string.Empty;
+        public decimal DishPrice { get; set; }
+        public string? DishImage { get; set; }
+
         // Navigation
         public Guest Guest { get; set; } = null!;
         public Table Table { get; set; } = null!;

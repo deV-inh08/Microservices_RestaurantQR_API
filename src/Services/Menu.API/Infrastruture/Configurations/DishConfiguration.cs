@@ -36,8 +36,9 @@ public class DishConfiguration : IEntityTypeConfiguration<Dish>
 
         // Một Dish có nhiều DishSnapshot (snapshot lịch sử giá/tên)
         builder.HasMany(d => d.Snapshots)
-            .WithOne()
-            .HasForeignKey(s => s.DishId)
-            .OnDelete(DeleteBehavior.Cascade);
+     .WithOne(s => s.Dish)           // khớp với property Dish? trong DishSnapshot
+     .HasForeignKey(s => s.DishId)
+     .OnDelete(DeleteBehavior.Cascade);
+
     }
 }

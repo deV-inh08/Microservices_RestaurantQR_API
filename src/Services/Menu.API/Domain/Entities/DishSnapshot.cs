@@ -13,6 +13,6 @@ namespace Menu.API.Domain.Entities
         public int DishId { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         [ForeignKey("DishId")]
-        public virtual Dish? Dish { get; set; }
+        public Dish Dish { get; set; } = null!;
     }
 }

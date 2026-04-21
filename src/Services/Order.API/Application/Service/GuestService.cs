@@ -24,7 +24,7 @@ public class GuestService
         var table = await _db.Tables
             .FirstOrDefaultAsync(t => t.Number == request.TableNumber)
             ?? throw new KeyNotFoundException("Table not found");
-
+        Console.WriteLine($"table.Status__________________________________{table.Status}");
         if (table.Status != TableStatus.Available)
             throw new ArgumentException("Table is not available");
 

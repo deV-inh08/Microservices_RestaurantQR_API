@@ -1,3 +1,4 @@
+using Azure.Core;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +9,7 @@ using Order.API.Application.Service;
 using Order.API.Infrastructure.ExternalServices;
 using Order.API.Infrastructure.Persistence;
 using Order.API.Infrastructure.Utils;
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using System.Text.Json;
@@ -16,6 +18,7 @@ using System.Text.Json.Serialization;
 
 Microsoft.IdentityModel.Logging.IdentityModelEventSource.ShowPII = true;
 Microsoft.IdentityModel.Logging.IdentityModelEventSource.LogCompleteSecurityArtifact = true;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // ─── EF Core ──────────────────────────────────────────
@@ -30,64 +33,155 @@ builder.Services.AddSingleton(guestJwtSettings);
 builder.Services.AddSingleton<IGuestJwtUtil, GuestJwtUtil>();
 
 // ─── JWT (chỉ validate, không issue) ──────────────────
+
+//Request đến Order.API
+//        │
+//        ▼
+//   PolicyScheme "MultiJwt"
+//   ReadJwtToken (parse only, không validate)
+//   tokenType == "GuestAccess" ?
+//        │                    │
+//       Yes                   No
+//        │                    │
+//        ▼                    ▼
+//  "GuestJwt"           "StaffJwt"
+//  validate bằng        validate bằng
+//  GuestJwt:            Jwt:
+// GuestAccessTokenSecret         AccessTokenSecret
+//        │                    │
+//        ▼                    ▼
+//  role = "Guest"       role = "Staff/Admin/SuperAdmin"
+//  [Authorize(Roles = "Guest")] pass[Authorize(Roles = "Staff")] pass
+
+
+JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
+
 var jwtIssuer = builder.Configuration["Jwt:Issuer"];
 var jwtAudience = builder.Configuration["Jwt:Audience"];
 var jwtSecret = builder.Configuration["Jwt:AccessTokenSecret"];
 
-JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
-JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = "MultiJwt";
+    options.DefaultChallengeScheme = "MultiJwt";
+})
+.AddPolicyScheme("MultiJwt", displayName: "Staff or Guest JWT", options =>
+{
+    // PolicyScheme là "router" — không validate, chỉ quyết định
+    // forward sang scheme nào dựa vào nội dung token
+    options.ForwardDefaultSelector = context =>
     {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuerSigningKey = true,
-            RoleClaimType = "role",
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(jwtSecret!)),
-            ValidateIssuer = true,
-            ValidIssuer = jwtIssuer,
-            ValidateAudience = true,
-            ValidAudience = jwtAudience,
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero
-        };
+        var authHeader = context.Request.Headers.Authorization
+                                .FirstOrDefault();
 
-        options.Events = new JwtBearerEvents
+        if (authHeader?.StartsWith("Bearer ") == true)
         {
-            OnAuthenticationFailed = ctx =>
-            {
+            var raw = authHeader["Bearer ".Length..].Trim();
+            var handler = new JwtSecurityTokenHandler();
 
-                var token = ctx.Request.Headers["Authorization"].ToString();
-                return Task.CompletedTask;
-            },
-            OnTokenValidated = ctx =>
+            // ReadJwtToken chỉ parse, KHÔNG validate — an toàn ở đây
+            // vì validate sẽ xảy ra ở scheme được forward đến
+            if (handler.CanReadToken(raw))
             {
-                var claims = ctx.Principal?.Claims
-                    .Select(c => $"{c.Type}={c.Value}");
-                Console.WriteLine($"✅ Claims: {string.Join(", ", claims ?? [])}");
-                return Task.CompletedTask;
-            },
-            OnChallenge = async context =>
-            {
-                context.HandleResponse();
-                context.Response.StatusCode = 401;
-                context.Response.ContentType = "application/json";
-                await context.Response.WriteAsync(JsonSerializer.Serialize(
-                    new { message = "You are not authenticated or your token is invalid", statusCode = 401 },
-                    new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
-            },
-            OnForbidden = async context =>
-            {
-                context.Response.StatusCode = 403;
-                context.Response.ContentType = "application/json";
-                await context.Response.WriteAsync(JsonSerializer.Serialize(
-                    new { message = "You do not have permission to perform this action", statusCode = 403 },
-                    new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
+                var jwt = handler.ReadJwtToken(raw);
+                var tokenType = jwt.Claims
+                    .FirstOrDefault(c => c.Type == "tokenType")?.Value;
+
+                if (tokenType == "GuestAccess")
+                    return "GuestJwt";
             }
-        };
-    });
+        }
 
+        // Mặc định: Staff / Admin / SuperAdmin
+        return "StaffJwt";
+    };
+})
+.AddJwtBearer("StaffJwt", options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(
+                                       Encoding.UTF8.GetBytes(jwtSecret!)),
+        ValidateIssuer = true,
+        ValidIssuer = jwtIssuer,
+        ValidateAudience = true,
+        ValidAudience = jwtAudience,
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero,
+        RoleClaimType = "role",
+        NameClaimType = "email"
+    };
+    options.Events = new JwtBearerEvents
+    {
+        OnChallenge = async ctx =>
+        {
+            ctx.HandleResponse();
+            ctx.Response.StatusCode = 401;
+            ctx.Response.ContentType = "application/json";
+            await ctx.Response.WriteAsync(JsonSerializer.Serialize(
+                new
+                {
+                    message = "You are not authenticated or your token is invalid",
+                    statusCode = 401
+                },
+                new JsonSerializerOptions
+                { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
+        },
+        OnForbidden = async ctx =>
+        {
+            ctx.Response.StatusCode = 403;
+            ctx.Response.ContentType = "application/json";
+            await ctx.Response.WriteAsync(JsonSerializer.Serialize(
+                new
+                {
+                    message = "You do not have permission to perform this action",
+                    statusCode = 403
+                },
+                new JsonSerializerOptions
+                { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
+        }
+    };
+})
+.AddJwtBearer("GuestJwt", options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(
+                                       Encoding.UTF8.GetBytes(
+                                           guestJwtSettings.AccessTokenSecret)),
+        ValidateIssuer = true,
+        ValidIssuer = guestJwtSettings.Issuer,
+        ValidateAudience = true,
+        ValidAudience = guestJwtSettings.Audience,
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero,
+        RoleClaimType = "role",   // claim "role" = "Guest"
+        NameClaimType = "guestId"
+    };
+    options.Events = new JwtBearerEvents
+    {
+        OnChallenge = async ctx =>
+        {
+            ctx.HandleResponse();
+            ctx.Response.StatusCode = 401;
+            ctx.Response.ContentType = "application/json";
+            await ctx.Response.WriteAsync(JsonSerializer.Serialize(
+                new
+                {
+                    message = "Phiên hết hạn, vui lòng quét QR lại",
+                    statusCode = 401
+                },
+                new JsonSerializerOptions
+                { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
+        }
+    };
+});
+
+// Giữ nguyên — không thay đổi
 builder.Services.AddAuthorization();
 
 // ─── Services ─────────────────────────────────────────

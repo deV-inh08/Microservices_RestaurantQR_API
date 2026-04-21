@@ -49,7 +49,7 @@ public class AuthService
         await _db.SaveChangesAsync();
 
         return new LoginResponse(
-            Account: ToDto(account),
+            Account: AccountMapper.ToDto(account),
             AccessToken: accessToken,
             RefreshToken: refreshToken);
     }

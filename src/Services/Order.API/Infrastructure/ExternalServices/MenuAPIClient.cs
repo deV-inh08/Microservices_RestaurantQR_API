@@ -4,7 +4,7 @@ namespace Order.API.Infrastructure.ExternalServices;
 public record DishSnapshotResponse(
     int Id,
     string Name,
-    int Price,
+    decimal Price,
     string? ImagePath
 );
 

@@ -32,7 +32,7 @@ public class AccountService
     public async Task<AccountDto?> GetByIdAsync(int id)
     {
         var account = await _db.Accounts.FindAsync(id);
-        return account is null ? null : AuthService.ToDto(account);
+        return account is null ? null : AccountMapper.ToDto(account);
     }
 
     public async Task<AccountDto> GetProfileAsync(int accountId)
@@ -43,7 +43,7 @@ public class AccountService
         {
             throw new KeyNotFoundException("Account isn't exists");
         }
-        return AuthService.ToDto(account);
+        return AccountMapper.ToDto(account);
     }
 
     // ─── Profile (self) ───────────────────────────────
@@ -61,7 +61,7 @@ public class AccountService
         account.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();
-        return AuthService.ToDto(account);
+        return AccountMapper.ToDto(account);
     }
 
     public async Task ChangePasswordAsync(int accountId, ChangePasswordRequest request)
@@ -88,53 +88,22 @@ public class AccountService
 
     // ─── SuperAdmin tạo Admin ─────────────────────────
 
-    public async Task<AccountDto> CreateAdminAsync(CreateAdminRequest request)
-    {
-        if (request.Password != request.ConfirmPassword)
-            throw new ArgumentException("Password confirmation does not match");
-
-        if (await _db.Accounts.AnyAsync(a => a.Email == request.Email.ToLower()))
-            throw new ArgumentException("Email already exists");
-
-        var account = new Account
-        {
-            Name = request.Name.Trim(),
-            Email = request.Email.ToLower().Trim(),
-            Password = _passwordService.Hash(request.Password),
-            Role = UserRole.Admin,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
-        _db.Accounts.Add(account);
-        await _db.SaveChangesAsync();
-        return AuthService.ToDto(account);
-    }
+    public Task<AccountDto> CreateAdminAsync(CreateAdminRequest request) =>
+    CreateAccountAsync(
+        request.Name,
+        request.Email,
+        request.Password,
+        request.ConfirmPassword,
+        UserRole.Admin);
 
     // ─── Admin tạo Staff ──────────────────────────────
-
-    public async Task<AccountDto> CreateStaffAsync(CreateStaffRequest request)
-    {
-        if (request.Password != request.ConfirmPassword)
-            throw new ArgumentException("Confirm password incorrect");
-
-        if (await _db.Accounts.AnyAsync(a => a.Email == request.Email.ToLower()))
-            throw new ArgumentException("Email is exist");
-
-        var account = new Account
-        {
-            Name = request.Name.Trim(),
-            Email = request.Email.ToLower().Trim(),
-            Password = _passwordService.Hash(request.Password),
-            Role = UserRole.Staff,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
-        _db.Accounts.Add(account);
-        await _db.SaveChangesAsync();
-        return AuthService.ToDto(account);
-    }
+    public Task<AccountDto> CreateStaffAsync(CreateStaffRequest request) =>
+        CreateAccountAsync(
+            request.Name,
+            request.Email,
+            request.Password,
+            request.ConfirmPassword,
+            UserRole.Staff);
 
     // ─── Update / Delete ──────────────────────────────
 
@@ -149,7 +118,7 @@ public class AccountService
         account.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();
-        return AuthService.ToDto(account);
+        return AccountMapper.ToDto(account);
     }
 
     public async Task<AccountDto> DeleteAsync(int id)
@@ -159,6 +128,38 @@ public class AccountService
 
         _db.Accounts.Remove(account);
         await _db.SaveChangesAsync();
-        return AuthService.ToDto(account);
+        return AccountMapper.ToDto(account);
+    }
+
+
+    private async Task<AccountDto> CreateAccountAsync(
+    string name,
+    string email,
+    string password,
+    string confirmPassword,
+    UserRole role)
+    {
+        if (password != confirmPassword)
+            throw new ArgumentException("Password confirmation does not match");
+
+        var normalizedEmail = email.ToLower().Trim();
+
+        if (await _db.Accounts.AnyAsync(a => a.Email == normalizedEmail))
+            throw new ArgumentException("Email already exists");
+
+        var account = new Account
+        {
+            Name = name.Trim(),
+            Email = normalizedEmail,
+            Password = _passwordService.Hash(password),
+            Role = role,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        _db.Accounts.Add(account);
+        await _db.SaveChangesAsync();
+
+        return AccountMapper.ToDto(account);
     }
 }

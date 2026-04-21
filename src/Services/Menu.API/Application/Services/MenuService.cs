@@ -96,7 +96,7 @@ public class MenuService
                 DishId = dish.Id,
                 Name = dish.Name,   // snapshot giá trị CŨ
                 ImagePath = dish.ImagePath,
-                Category = request.Category,
+                Category = dish.Category,
                 Description = dish.Description,
                 Price = dish.Price,
                 CreatedAt = DateTime.UtcNow

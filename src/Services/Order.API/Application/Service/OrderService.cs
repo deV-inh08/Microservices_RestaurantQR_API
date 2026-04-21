@@ -3,6 +3,7 @@ using Order.API.Application.DTOs;
 using Order.API.Domain.Entities;
 using Order.API.Infrastructure.ExternalServices;
 using Order.API.Infrastructure.Persistence;
+using Shared.DTOs;
 
 namespace Order.API.Application.Service;
 
@@ -17,15 +18,18 @@ public class OrderService
         _menuApi = menuApi;
     }
 
-    public async Task<List<OrderDto>> GetAllAsync()
+    public async Task<PaginatedResponse<OrderDto>> GetAllAsync(PaginationParams p)
     {
-        var orders = await _db.Orders
+        var query = _db.Orders
             .Include(o => o.Guest)
             .Include(o => o.Table)
-            .OrderByDescending(o => o.CreatedAt)
+            .OrderByDescending(o => o.CreatedAt);
+        var total = await query.CountAsync();
+        var items = await query
+            .Skip(p.Skip)
+            .Take(p.Take)
             .ToListAsync();
-
-        return orders.Select(ToDto).ToList();
+        return new PaginatedResponse<OrderDto>(items.Select(ToDto), total, p.Page, p.Take);
     }
 
     public async Task<List<OrderDto>> GetByGuestAsync(int guestId)

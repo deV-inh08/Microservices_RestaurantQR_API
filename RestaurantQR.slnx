@@ -1,5 +1,7 @@
 <Solution>
-  <Folder Name="/src/" />
+  <Folder Name="/src/">
+    <Project Path="BuildingBlocks/Shared.csproj" Id="4e03590a-7473-491b-990d-8d39e5c419b2" />
+  </Folder>
   <Folder Name="/src/Services/">
     <Project Path="src/Services/Identity.API/Identity.API.csproj" />
     <Project Path="src/Services/Menu.API/Menu.API.csproj" />

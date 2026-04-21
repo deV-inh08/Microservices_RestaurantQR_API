@@ -3,6 +3,7 @@ using Menu.API.Domain.Entities;
 using Menu.API.Infrastructure.Persistence;
 using Menu.API.Infrastructure.Utils;
 using Microsoft.EntityFrameworkCore;
+using Shared.DTOs;
 
 namespace Menu.API.Application.Services;
 
@@ -19,13 +20,16 @@ public class MenuService
 
     // ─── Query ────────────────────────────────────────
 
-    public async Task<List<DishDto>> GetAllAsync()
+    public async Task<PaginatedResponse<DishDto>> GetAllAsync(PaginationParams p)
     {
-        var dishes = await _db.Dishes
-            .OrderByDescending(d => d.CreatedAt)
+        var query = _db.Dishes.OrderByDescending(d => d.CreatedAt);
+        var total = await query.CountAsync();
+        var items = await query
+            .Skip(p.Skip)
+            .Take(p.Take)
             .ToListAsync();
 
-        return dishes.Select(ToDto).ToList();
+        return new PaginatedResponse<DishDto>(items.Select(ToDto), total, p.Page, p.Take);
     }
 
     public async Task<DishDto> GetByIdAsync(int id)

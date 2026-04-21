@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Order.API.Application.DTOs;
 using Order.API.Application.Service;
+using Shared.DTOs;
 
 namespace Order.API.API.Controllers;
 
@@ -14,9 +15,9 @@ public class OrderController : ControllerBase
 
     [HttpGet]
     [Authorize(Roles = "SuperAdmin,Admin,Staff")]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] PaginationParams p)
     {
-        var result = await _orderService.GetAllAsync();
+        var result = await _orderService.GetAllAsync(p);
         return Ok(new { message = "Get all orders successfully", data = result });
     }
 

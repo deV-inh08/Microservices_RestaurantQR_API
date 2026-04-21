@@ -2,7 +2,7 @@
 using Menu.API.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
+using Shared.DTOs;
 namespace Menu.API.API.Controllers;
 
 [ApiController]
@@ -20,9 +20,9 @@ public class MenuController : ControllerBase
 
     [HttpGet]
     [AllowAnonymous]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] PaginationParams p)
     {
-        var result = await _menuService.GetAllAsync();
+        var result = await _menuService.GetAllAsync(p);
         return Ok(new { message = "Lấy danh sách món ăn thành công", data = result });
     }
 

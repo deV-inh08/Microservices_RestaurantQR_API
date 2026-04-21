@@ -2,6 +2,7 @@
 using Order.API.Application.DTOs;
 using Order.API.Domain.Entities;
 using Order.API.Infrastructure.Persistence;
+using Shared.DTOs;
 
 namespace Order.API.Application.Service;
 
@@ -11,10 +12,15 @@ public class TableService
 
     public TableService(OrderDbContext db) => _db = db;
 
-    public async Task<List<TableDto>> GetAllAsync()
+    public async Task<PaginatedResponse<TableDto>> GetAllAsync(PaginationParams p)
     {
-        var tables = await _db.Tables.OrderBy(t => t.Number).ToListAsync();
-        return tables.Select(ToDto).ToList();
+        var query = _db.Tables.OrderBy(t => t.Number);
+        var total = await query.CountAsync();
+        var items = await query
+            .Skip(p.Skip)
+            .Take(p.Take)
+            .ToListAsync();
+        return new PaginatedResponse<TableDto>(items.Select(ToDto), total, p.Page, p.Take);
     }
 
     public async Task<TableDto> GetByIdAsync(int id)

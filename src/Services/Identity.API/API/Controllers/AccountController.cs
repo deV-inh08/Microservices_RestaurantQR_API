@@ -2,6 +2,7 @@
 using Identity.API.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Shared.DTOs;
 
 namespace Identity.API.API.Controllers;
 
@@ -43,13 +44,13 @@ public class AccountController : ControllerBase
         return Ok(new { message = "Change password successfully" });
     }
 
-    // ─── SuperAdmin: quản lý Admin ────────────────────
+    // ─── Manage Acccounts ────────────────────
 
     [HttpGet]
     [Authorize(Roles = "SuperAdmin,Admin")]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] PaginationParams p)
     {
-        var result = await _accountService.GetAllAsync();
+        var result = await _accountService.GetAllAsync(p);
         return Ok(new { message = "Get all accounts successfully", data = result });
     }
 

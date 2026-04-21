@@ -5,6 +5,7 @@ using Identity.API.Application.Mappers;
 using Identity.API.Domain.Entities;
 using Identity.API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Shared.DTOs;
 
 namespace Identity.API.Application.Services;
 
@@ -21,12 +22,15 @@ public class AccountService
 
     // ─── Query ────────────────────────────────────────
 
-    public async Task<List<AccountDto>> GetAllAsync()
+    public async Task<PaginatedResponse<AccountDto>> GetAllAsync(PaginationParams p)
     {
-        var accounts = await _db.Accounts
-            .OrderByDescending(a => a.CreatedAt)
+        var query = _db.Accounts.OrderByDescending(a => a.CreatedAt);
+        var total = await query.CountAsync();
+        var items = await query
+            .Skip(p.Skip)
+            .Take(p.Take)
             .ToListAsync();
-        return accounts.Select(AccountMapper.ToDto).ToList();
+        return new PaginatedResponse<AccountDto>(items.Select(AccountMapper.ToDto), total, p.Page, p.Take);
     }
 
     public async Task<AccountDto?> GetByIdAsync(int id)

@@ -1,6 +1,7 @@
 ﻿// Application/Services/AccountService.cs
 using Identity.API.Application.DTOs;
 using Identity.API.Application.Interfaces;
+using Identity.API.Application.Mappers;
 using Identity.API.Domain.Entities;
 using Identity.API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +26,7 @@ public class AccountService
         var accounts = await _db.Accounts
             .OrderByDescending(a => a.CreatedAt)
             .ToListAsync();
-        return accounts.Select(AuthService.ToDto).ToList();
+        return accounts.Select(AccountMapper.ToDto).ToList();
     }
 
     public async Task<AccountDto?> GetByIdAsync(int id)

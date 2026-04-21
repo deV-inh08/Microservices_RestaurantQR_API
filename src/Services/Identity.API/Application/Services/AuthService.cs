@@ -4,6 +4,7 @@ using Identity.API.Application.Interfaces;
 using Identity.API.Domain.Entities;
 using Identity.API.Infrastructure.Persistence;
 using Identity.API.Infrastructure.Utils;
+using Identity.API.Application.Mappers;
 using Microsoft.EntityFrameworkCore;
 
 namespace Identity.API.Application.Services;

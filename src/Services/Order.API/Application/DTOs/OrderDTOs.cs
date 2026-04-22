@@ -18,6 +18,8 @@ public record CreateTableRequest(
 
 public record UpdateTableStatusRequest(TableStatus Status);
 
+public record UpdateTableVisibilityRequest(bool IsVisibleOnReservation);  // ← NEW
+
 // ─── Guest ────────────────────────────────────────────
 public record GuestLoginRequest(
     int TableNumber,
@@ -45,7 +47,7 @@ public record OrderDto(
     int TableId,
     int TableNumber,
     int DishSnapshotId,
-       string DishName,
+    string DishName,
     decimal DishPrice,
     string? DishImage,
     int? AccountId,
@@ -55,10 +57,9 @@ public record OrderDto(
     DateTime UpdatedAt);
 
 public record CreateOrderRequest(
-      int? TableId,
+    int? TableId,
     int DishSnapshotId,
     int Quantity);
-
 
 public record UpdateOrderStatusRequest(
     OrderStatus Status,

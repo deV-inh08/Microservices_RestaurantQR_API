@@ -45,6 +45,15 @@ public class TableController : ControllerBase
         return Ok(new { message = "Update status successfully", data = result });
     }
 
+    // ← NEW: toggle isVisibleOnReservation
+    [HttpPatch("{id:int}/visibility")]
+    [Authorize(Roles = "SuperAdmin,Admin")]
+    public async Task<IActionResult> UpdateVisibility(int id, [FromBody] UpdateTableVisibilityRequest request)
+    {
+        var result = await _tableService.UpdateVisibilityAsync(id, request);
+        return Ok(new { message = "Update visibility successfully", data = result });
+    }
+
     // Staff click "Reset" when guest go out
     [HttpPatch("{id:int}/reset")]
     [Authorize(Roles = "SuperAdmin,Admin,Staff")]

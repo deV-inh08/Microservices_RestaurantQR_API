@@ -46,9 +46,11 @@ public class MenuController : ControllerBase
 
     }
 
+
     [HttpPut("{id:int}")]
+    [Consumes("multipart/form-data")]
     [Authorize(Roles = "SuperAdmin,Admin")]
-    public async Task<IActionResult> Update(int id, [FromBody] UpdateDishRequest request)
+    public async Task<IActionResult> Update(int id, [FromForm] UpdateDishRequest request)
     {
         var result = await _menuService.UpdateAsync(id, request);
         return Ok(new { message = "Cập nhật món ăn thành công", data = result });

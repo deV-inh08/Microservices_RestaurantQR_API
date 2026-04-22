@@ -91,14 +91,13 @@ public class MenuService
         if (request.Price <= 0)
             throw new ArgumentException("Dish price must be greater than 0");
 
-        // Khi update giá/tên → tạo snapshot để Order.API có thể
-        // reference lại giá tại thời điểm đặt hàng (immutable history)
+        // Snapshot old values when key fields change
         if (dish.Price != request.Price || dish.Name != request.Name.Trim() || dish.Category != request.Category)
         {
             _db.DishSnapshots.Add(new DishSnapshot
             {
                 DishId = dish.Id,
-                Name = dish.Name,   // snapshot giá trị CŨ
+                Name = dish.Name,
                 ImagePath = dish.ImagePath,
                 Category = dish.Category,
                 Description = dish.Description,
@@ -112,13 +111,15 @@ public class MenuService
         dish.Category = request.Category;
         dish.Description = request.Description;
 
-
-        // Cập nhật ImagePath nếu FE truyền giá trị mới (URL string)
-        // Nếu null → giữ nguyên ảnh cũ
-        if (request.ImagePath != null)
+        // ← Handle new image upload; keep existing if no new file provided
+        if (request.Image != null)
         {
-            dish.ImagePath = request.ImagePath;
+            if (!string.IsNullOrEmpty(dish.ImagePath))
+                _fileUploadUtil.DeleteFile(dish.ImagePath);
+
+            dish.ImagePath = await _fileUploadUtil.SaveFileAsync(request.Image);
         }
+
         await _db.SaveChangesAsync();
         return ToDto(dish);
     }

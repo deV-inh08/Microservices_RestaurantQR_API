@@ -3,8 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Menu.API.Application.DTOs;
 
-
-
 public record DishDto(
     int Id,
     string Name,
@@ -33,23 +31,29 @@ public class CreateDishRequest
     public IFormFile? Image { get; set; }
 }
 
-//public record CreateDishRequest(
-//    string Name,
-//    string Description,
-//    IFormFile Image,
-//    DishCategory Category,
-//    int Price);
+// ← Changed from record to class with [FromForm] for multipart support
+public class UpdateDishRequest
+{
+    [FromForm(Name = "name")]
+    public required string Name { get; set; }
 
-public record UpdateDishRequest(
-    string Name,
-    string Description,
-    string? ImagePath,
-    int Price,
-    DishCategory Category
-    );
+    [FromForm(Name = "price")]
+    public required int Price { get; set; }
+
+    [FromForm(Name = "description")]
+    public string Description { get; set; } = string.Empty;
+
+    [FromForm(Name = "category")]
+    public required DishCategory Category { get; set; }
+
+    /// <summary>
+    /// New image file. If null, the existing image is kept unchanged.
+    /// </summary>
+    [FromForm(Name = "image")]
+    public IFormFile? Image { get; set; }
+}
 
 public record UpdateDishStatusRequest(DishStatus Status);
-
 
 public record DishSnapshotDto(
     int Id,

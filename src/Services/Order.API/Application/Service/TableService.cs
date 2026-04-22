@@ -61,6 +61,19 @@ public class TableService
         return ToDto(table);
     }
 
+
+    // ← NEW: toggle IsVisibleOnReservation
+    public async Task<TableDto> UpdateVisibilityAsync(int id, UpdateTableVisibilityRequest request)
+    {
+        var table = await _db.Tables.FindAsync(id)
+            ?? throw new KeyNotFoundException("Table not found");
+
+        table.IsVisibleOnReservation = request.IsVisibleOnReservation;
+        table.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+        return ToDto(table);
+    }
+
     // Gọi khi khách rời bàn — vô hiệu hoá tất cả GuestToken cũ
     public async Task<TableDto> ResetTableAsync(int id)
     {

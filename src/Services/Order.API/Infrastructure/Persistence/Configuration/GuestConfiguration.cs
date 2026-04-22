@@ -18,6 +18,7 @@ public class GuestConfiguration : IEntityTypeConfiguration<Guest>
         builder.Property(g => g.TableId).IsRequired();
         builder.Property(g => g.CreatedAt).IsRequired();
 
+        builder.Property(g => g.SessionId).IsRequired();
         builder.HasOne(g => g.Table)
             .WithMany(t => t.Guests)
             .HasForeignKey(g => g.TableId)

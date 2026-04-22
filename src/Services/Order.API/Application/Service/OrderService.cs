@@ -112,9 +112,11 @@ public class OrderService
         if (table.Status != TableStatus.Occupied)
             throw new ArgumentException("Table is not occupied");
 
-        // Tìm guest mới nhất của bàn này
+        // Tìm guest có SessionId khớp với SessionId hiện tại của bàn.
+        // Điều này đảm bảo staff không thể tạo order cho guest của session cũ
+        // (sau khi bàn đã bị reset và session mới chưa có guest).
         var guest = await _db.Guests
-            .Where(g => g.TableId == request.TableId)
+            .Where(g => g.TableId == request.TableId && g.Table.SessionId == table.SessionId)
             .OrderByDescending(g => g.CreatedAt)
             .FirstOrDefaultAsync()
             ?? throw new KeyNotFoundException("Guest not found");

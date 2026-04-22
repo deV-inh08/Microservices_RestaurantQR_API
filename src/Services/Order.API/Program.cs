@@ -76,6 +76,13 @@ builder.Services.AddAuthentication(options =>
         var authHeader = context.Request.Headers.Authorization
                                 .FirstOrDefault();
 
+        if (string.IsNullOrEmpty(authHeader))
+        {
+            var qs = context.Request.Query["access_token"].FirstOrDefault();
+            if (!string.IsNullOrEmpty(qs))
+                authHeader = $"Bearer {qs}";
+        }
+
         if (authHeader?.StartsWith("Bearer ") == true)
         {
             var raw = authHeader["Bearer ".Length..].Trim();
@@ -116,6 +123,15 @@ builder.Services.AddAuthentication(options =>
     };
     options.Events = new JwtBearerEvents
     {
+        // Thêm event này để SignalR WebSocket hoạt động
+        OnMessageReceived = ctx =>
+        {
+            var token = ctx.Request.Query["access_token"].FirstOrDefault();
+            var path = ctx.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(token) && path.StartsWithSegments("/hubs"))
+                ctx.Token = token;
+            return Task.CompletedTask;
+        },
         OnChallenge = async ctx =>
         {
             ctx.HandleResponse();
@@ -164,6 +180,14 @@ builder.Services.AddAuthentication(options =>
     };
     options.Events = new JwtBearerEvents
     {
+        OnMessageReceived = ctx =>
+        {
+            var token = ctx.Request.Query["access_token"].FirstOrDefault();
+            var path = ctx.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(token) && path.StartsWithSegments("/hubs"))
+                ctx.Token = token;
+            return Task.CompletedTask;
+        },
         OnChallenge = async ctx =>
         {
             ctx.HandleResponse();
@@ -202,7 +226,7 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policy =>
+    options.AddPolicy("AllowFrontend", policy =>
         policy
             .WithOrigins(
                 "http://localhost:4000",   // Next.js dev
@@ -235,7 +259,7 @@ using (var scope = app.Services.CreateScope())
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
 //app.UseHttpsRedirection();
-app.UseCors();
+app.UseCors("AllowFrontend");
 app.MapOpenApi();
 app.UseSwaggerUI(o => o.SwaggerEndpoint("/openapi/v1.json", "Order API"));
 app.UseAuthentication();

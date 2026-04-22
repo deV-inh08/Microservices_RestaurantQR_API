@@ -1,4 +1,4 @@
-using Azure.Core;
+using Order.API.Hubs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
@@ -195,9 +195,29 @@ builder.Services.AddControllers()
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
+//builder.Services.AddCors(options =>
+//    options.AddDefaultPolicy(p =>
+//        p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+
+
 builder.Services.AddCors(options =>
-    options.AddDefaultPolicy(p =>
-        p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+{
+    options.AddDefaultPolicy(policy =>
+        policy
+            .WithOrigins(
+                "http://localhost:4000",   // Next.js dev
+                "http://localhost:3001"    // hoặc port khác
+            )
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials());          // BẮT BUỘC cho SignalR WebSocket
+});
+
+builder.Services.AddSignalR(options =>
+{
+    options.EnableDetailedErrors = builder.Environment.IsDevelopment();
+});
+
 builder.Services.AddHttpClient<MenuApiClient>(client =>
 {
     // Đọc từ config, không hardcode
@@ -221,5 +241,6 @@ app.UseSwaggerUI(o => o.SwaggerEndpoint("/openapi/v1.json", "Order API"));
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<OrderHub>("/hubs/order");
 
 app.Run();

@@ -1,6 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using Order.API.Application.DTOs;
 using Order.API.Domain.Entities;
+using Order.API.Hubs;
 using Order.API.Infrastructure.ExternalServices;
 using Order.API.Infrastructure.Persistence;
 using Shared.DTOs;
@@ -11,11 +13,13 @@ public class OrderService
 {
     private readonly OrderDbContext _db;
     private readonly MenuApiClient _menuApi;
+    private readonly IHubContext<OrderHub> _hub;
 
-    public OrderService(OrderDbContext db, MenuApiClient menuApi)
+    public OrderService(OrderDbContext db, MenuApiClient menuApi, IHubContext<OrderHub> hub)
     {
         _db = db;
         _menuApi = menuApi;
+        _hub = hub;
     }
 
     public async Task<PaginatedResponse<OrderDto>> GetAllAsync(PaginationParams p)
@@ -80,7 +84,17 @@ public class OrderService
         await _db.Entry(order).Reference(o => o.Guest).LoadAsync();
         await _db.Entry(order).Reference(o => o.Table).LoadAsync();
 
-        return ToDto(order);
+        var dto = ToDto(order);
+
+        // ── Broadcast real-time ─────────────────────────────────────────────
+        // 1. Notify staff: có order mới
+        await _hub.Clients.Group("staff").SendAsync("OrderCreated", dto);
+
+        // 2. Notify guest's table: cập nhật danh sách đơn
+        await _hub.Clients.Group($"table-{order.TableId}").SendAsync("OrderCreated", dto);
+
+        return dto;
+
     }
 
 
@@ -126,7 +140,16 @@ public class OrderService
 
         await _db.Entry(order).Reference(o => o.Guest).LoadAsync();
         await _db.Entry(order).Reference(o => o.Table).LoadAsync();
-        return ToDto(order);
+        var dto = ToDto(order);
+
+        // ── Broadcast real-time ─────────────────────────────────────────────
+        // 1. Notify staff: có order mới
+        await _hub.Clients.Group("staff").SendAsync("OrderCreated", dto);
+
+        // 2. Notify guest's table: cập nhật danh sách đơn
+        await _hub.Clients.Group($"table-{order.TableId}").SendAsync("OrderCreated", dto);
+
+        return dto;
     }
     public async Task<OrderDto> UpdateStatusAsync(int id, UpdateOrderStatusRequest request)
     {
@@ -141,7 +164,15 @@ public class OrderService
         order.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();
-        return ToDto(order);
+        var dto = ToDto(order);
+        // ── Broadcast real-time ─────────────────────────────────────────────
+        // 1. Notify all staff: order đã được update
+        await _hub.Clients.Group("staff").SendAsync("OrderStatusUpdated", dto);
+
+        // 2. Notify guest's table: status đơn hàng thay đổi
+        await _hub.Clients.Group($"table-{order.TableId}").SendAsync("OrderStatusUpdated", dto);
+
+        return dto;
     }
 
     private static OrderDto ToDto(Domain.Entities.Order o) => new(

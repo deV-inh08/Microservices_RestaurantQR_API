@@ -63,3 +63,5 @@ public record CreateOrderRequest(
 public record UpdateOrderStatusRequest(
     OrderStatus Status,
     int? AccountId);
+
+public record ReservationTableDto(int Id, int Number, int Capacity, string Status);

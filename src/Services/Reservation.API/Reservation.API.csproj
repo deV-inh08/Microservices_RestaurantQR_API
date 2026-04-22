@@ -1,14 +1,26 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	  <UserSecretsId>182ab157-2dc6-4fce-a501-8c2f80228902</UserSecretsId>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.4" />
-    <PackageReference Include="MongoDB.Bson" Version="3.8.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<!-- MongoDB -->
+		<PackageReference Include="MongoDB.Driver" Version="3.1.0" />
+
+		<!-- Auth -->
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.6" />
+
+		<!-- OpenAPI / Swagger -->
+		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.4" />
+		<PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.1.7" />
+
+		<!-- JWT decode -->
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.3.2" />
+		<PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.3.2" />
+	</ItemGroup>
 
 </Project>

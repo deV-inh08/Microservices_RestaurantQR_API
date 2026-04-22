@@ -98,6 +98,15 @@ public class TableService
         };
     }
 
+    public async Task<List<ReservationTableDto>> GetAvailableForReservationAsync()
+    {
+        var tables = await _db.Tables
+            .Where(t => t.IsVisibleOnReservation)
+            .OrderBy(t => t.Number)
+            .ToListAsync();
+        return tables.Select(t => new ReservationTableDto(t.Id, t.Number, t.Capacity, t.Status.ToString())).ToList();
+    }
+
     public static TableDto ToDto(Table t) => new(
         t.Id, t.Number, t.Capacity, t.Status.ToString(),
         t.IsVisibleOnReservation, t.CreatedAt, t.UpdatedAt);

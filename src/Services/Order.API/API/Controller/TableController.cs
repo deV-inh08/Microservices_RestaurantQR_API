@@ -69,4 +69,12 @@ public class TableController : ControllerBase
         var table = await _tableService.GetByIdPublicAsync(id);
         return Ok(new { message = "Get table successfully", data = table });
     }
+
+    [HttpGet("reservation-available")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetAvailableForReservation()
+    {
+        var result = await _tableService.GetAvailableForReservationAsync();
+        return Ok(new { message = "Get available tables for reservation successfully", data = result });
+    }
 }

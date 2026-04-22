@@ -1,51 +1,68 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace Reservation.API.Domain.Entities
+namespace Reservation.API.Domain.Entities;
+
+public enum ReservationStatus
 {
+    Booked = 1,     // Đã đặt, chờ khách đến
+    CheckedIn = 2,  // Khách đã đến
+    Cancelled = 3   // Đã hủy
+}
 
-    public enum ReservationStatus
-    {
-        // Đã cọc tiền, đang chờ khách đến
-        Booked = 1,
+public enum DepositStatus
+{
+    None = 0,       // Không yêu cầu cọc
+    Pending = 1,    // Chờ thanh toán cọc
+    Paid = 2,       // Đã nộp cọc
+    Refunded = 3,   // Đã hoàn tiền
+    Forfeited = 4   // Mất cọc (bùng lịch)
+}
 
-        // Khách đã đến và đang ngồi tại bàn
-        CheckedIn = 2,
+public class Reservation
+{
+    [BsonId]
+    [BsonRepresentation(BsonType.ObjectId)]
+    public string Id { get; set; } = ObjectId.GenerateNewId().ToString();
 
-        // Đơn bị hủy (không đến hoặc khách chủ động hủy)
-        Cancelled = 3
-    }
+    [BsonElement("guestName")]
+    public string GuestName { get; set; } = string.Empty;
 
-    public enum DepositStatus
-    {
-        None = 0,         // Không yêu cầu cọc
-        Pending = 1,      // Đang chờ thanh toán cọc
-        Paid = 2,         // Đã nộp cọc thành công
-        Refunded = 3,     // Đã hoàn tiền (nếu khách hủy đúng quy định)
-        Forfeited = 4     // Bị mất cọc (nếu khách bùng lịch)
-    }
-    public class Reservation
-    {
-        [BsonId]
-        public int Id { get; set; }
+    [BsonElement("guestPhone")]
+    public string GuestPhone { get; set; } = string.Empty;
 
-        public string GuestName { get; set; } = string.Empty;
-        public string GuestPhone { get; set; } = string.Empty;
-        public string? GuestEmail { get; set; }
-        public int? TableId { get; set; }
-        public int NumberOfPeople { get; set; }
-        public ReservationStatus Status { get; set; } = ReservationStatus.Booked;
-        public DateTime ReservationDate { get; set; }
+    [BsonElement("guestEmail")]
+    public string? GuestEmail { get; set; }
 
-        // Deposit
-        public decimal DepositAmount { get; set; }
-        public DepositStatus DepositStatus { get; set; } = DepositStatus.Pending;
+    [BsonElement("tableId")]
+    public int? TableId { get; set; }
 
+    [BsonElement("numberOfPeople")]
+    public int NumberOfPeople { get; set; }
 
-        public string? Note { get; set; }
-        public int? AccountId { get; set; }
+    [BsonElement("status")]
+    [BsonRepresentation(BsonType.String)]
+    public ReservationStatus Status { get; set; } = ReservationStatus.Booked;
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-    }
+    [BsonElement("reservationDate")]
+    public DateTime ReservationDate { get; set; }
+
+    [BsonElement("depositAmount")]
+    public decimal DepositAmount { get; set; }
+
+    [BsonElement("depositStatus")]
+    [BsonRepresentation(BsonType.String)]
+    public DepositStatus DepositStatus { get; set; } = DepositStatus.None;
+
+    [BsonElement("note")]
+    public string? Note { get; set; }
+
+    [BsonElement("accountId")]
+    public int? AccountId { get; set; } // Staff xử lý
+
+    [BsonElement("createdAt")]
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    [BsonElement("updatedAt")]
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

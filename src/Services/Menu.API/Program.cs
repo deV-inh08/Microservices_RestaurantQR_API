@@ -12,6 +12,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 
+JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
 // Turn off default claim mapping (sub -> nameidentifier, etc.) to keep original claim names from token
 Microsoft.IdentityModel.Logging.IdentityModelEventSource.ShowPII = true;
 Microsoft.IdentityModel.Logging.IdentityModelEventSource.LogCompleteSecurityArtifact = true;
@@ -46,7 +47,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidAudience = jwtAudience,
             ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero
+            ClockSkew = TimeSpan.Zero,
+            RoleClaimType = "role",
+            NameClaimType = "email"
         };
 
         options.Events = new JwtBearerEvents

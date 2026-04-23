@@ -228,14 +228,29 @@ builder.Services.AddOpenApi();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
+    {
+        // Đọc origins từ config thay vì hardcode
+        // Trong docker-compose: AllowedOrigins__0, AllowedOrigins__1
+        // Trong development: appsettings.Development.json
+        var origins = builder.Configuration
+            .GetSection("AllowedOrigins")
+            .GetChildren()
+            .Select(c => c.Value!)
+            .Where(v => !string.IsNullOrEmpty(v))
+            .ToArray();
+
+        // Fallback nếu config trống
+        if (origins.Length == 0)
+        {
+            origins = ["http://localhost:4000", "http://localhost:5000"];
+        }
+
         policy
-            .WithOrigins(
-                "http://localhost:4000",   // Next.js dev
-                "http://localhost:3001"    // hoặc port khác
-            )
+            .WithOrigins(origins)
             .AllowAnyMethod()
             .AllowAnyHeader()
-            .AllowCredentials());          // BẮT BUỘC cho SignalR WebSocket
+            .AllowCredentials(); // BẮT BUỘC cho SignalR WebSocket
+    });
 });
 
 builder.Services.AddSignalR(options =>

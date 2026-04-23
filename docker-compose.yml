@@ -20,7 +20,7 @@ services:
     volumes:
       - sqlserver_data:/var/opt/mssql
     healthcheck:
-      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "${SQL_SA_PASSWORD:-StrongPass123!}" -Q "SELECT 1" || exit 1
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "${SQL_SA_PASSWORD:-StrongPass123!}" -Q "SELECT 1" -No || exit 1
       interval: 10s
       timeout: 5s
       retries: 10
@@ -118,6 +118,9 @@ services:
       GuestJwt__AccessTokenExpiresInMinutes: "60"
       GuestJwt__RefreshTokenExpiresInDays: "1"
       MenuApi__BaseUrl: "http://menu-api:3002"
+      # ✅ FIX 5: CORS — cho phép cả Gateway và Frontend trực tiếp
+      AllowedOrigins__0: "${FRONTEND_URL:-http://localhost:4000}"
+      AllowedOrigins__1: "${GATEWAY_URL:-http://localhost:5000}"
     ports:
       - "5219:5219"
     depends_on:
@@ -156,7 +159,7 @@ services:
   gateway:
     build:
       context: .
-      dockerfile: src/Services/Gateway.API/Dockerfile
+      dockerfile: Gateway.API/Dockerfile
     container_name: restaurantqr-gateway
     environment:
       ASPNETCORE_ENVIRONMENT: Production

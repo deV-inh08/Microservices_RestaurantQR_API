@@ -167,9 +167,9 @@ using (var scope = app.Services.CreateScope())
         dbContext.Accounts.Add(new Account
         {
             Name = "Super Admin",
-            Email = "superAdmin1@restaurant.com",
+            Email = "superadmin1@restaurant.com",
             Role = UserRole.SuperAdmin,
-            Password = BCrypt.Net.BCrypt.HashPassword("SuperAdmin1@123678"), // Hash the password
+            Password = BCrypt.Net.BCrypt.HashPassword("SuperAdmin1@123678"),
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
         });

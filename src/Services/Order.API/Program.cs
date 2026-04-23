@@ -212,6 +212,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<TableService>();
 builder.Services.AddScoped<GuestService>();
 builder.Services.AddScoped<OrderService>();
+builder.Services.AddScoped<BillService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(o =>

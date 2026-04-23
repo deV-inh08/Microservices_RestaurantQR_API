@@ -71,11 +71,11 @@ public class TableController : ControllerBase
         return Ok(new { message = "Delete table successfully", data = result });
     }
 
-    [HttpGet("{id:int}/public")]
+    [HttpGet("{number:int}/public")]
     [AllowAnonymous]
-    public async Task<IActionResult> GetPublic(int id)
+    public async Task<IActionResult> GetPublic(int number)
     {
-        var table = await _tableService.GetByIdPublicAsync(id);
+        var table = await _tableService.GetByIdPublicAsync(number);
         return Ok(new { message = "Get table successfully", data = table });
     }
 

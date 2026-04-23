@@ -11,6 +11,7 @@ public class OrderDbContext : DbContext
     public DbSet<Guest> Guests => Set<Guest>();
     public DbSet<Order.API.Domain.Entities.Order> Orders
         => Set<Order.API.Domain.Entities.Order>();
+    public DbSet<Bill> Bills => Set<Bill>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

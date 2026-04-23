@@ -1,4 +1,7 @@
 using Identity.API.API.Middleware;
+using System.Threading.RateLimiting;
+using Identity.API.Infrastructure.BackgroundJobs;
+using Microsoft.AspNetCore.RateLimiting;
 using Identity.API.Application.Interfaces;
 using Identity.API.Application.Services;
 using Identity.API.Domain.Entities;
@@ -69,11 +72,67 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+// ─── Rate Limiting ────────────────────────────────────────────────────────────
+builder.Services.AddRateLimiter(options =>
+{
+    // Policy "login" — áp dụng cho POST /api/v1/auth/login
+    // Cho phép 5 request/phút mỗi IP
+    options.AddPolicy("login", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0  // Không queue — reject ngay khi quá limit
+            }));
+
+    // Policy "api" — áp dụng chung cho toàn bộ API (lỏng hơn)
+    options.AddPolicy("api", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 100,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            }));
+
+    // Custom response khi bị rate limit
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        context.HttpContext.Response.StatusCode = 429;
+        context.HttpContext.Response.ContentType = "application/json";
+
+        var retryAfter = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retry)
+            ? (int)retry.TotalSeconds
+            : 60;
+
+        context.HttpContext.Response.Headers["Retry-After"] = retryAfter.ToString();
+
+        await context.HttpContext.Response.WriteAsync(
+            System.Text.Json.JsonSerializer.Serialize(new
+            {
+                message = $"Quá nhiều yêu cầu. Vui lòng thử lại sau {retryAfter} giây.",
+                statusCode = 429,
+                retryAfter
+            }, new System.Text.Json.JsonSerializerOptions
+            {
+                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+            }),
+            cancellationToken);
+    };
+});
+
 // ─── Services ────────────────────────────────────────
 builder.Services.AddSingleton<IJwtUtil, JwtUtil>();
 builder.Services.AddSingleton<IPasswordUtil, PasswordUtil>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<AccountService>();
+// Cleanup job
+builder.Services.AddHostedService<RefreshTokenCleanupJob>();
 
 
 // ─── Controllers + Swagger ───────────────────────────
@@ -131,6 +190,7 @@ app.UseMiddleware<GlobalExceptionMiddleware>();
 //app.UseHttpsRedirection();
 
 app.UseCors();
+app.UseRateLimiter();
 app.MapOpenApi();
 app.UseSwaggerUI(options =>
 {

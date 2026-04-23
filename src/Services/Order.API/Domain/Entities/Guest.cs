@@ -7,6 +7,7 @@
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public int TableId { get; set; }
+        public int TableNumber { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         /// Snapshot của Table.SessionId tại thời điểm Guest login.

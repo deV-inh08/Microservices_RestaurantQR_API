@@ -33,7 +33,8 @@ public class OrderHub : Hub
     public async Task JoinTableGroup(int tableId)
     {
         var groupName = $"table-{tableId}";
-        await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+        //await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"table-{tableId}");
         _logger.LogInformation("Connection {Id} joined {Group}", Context.ConnectionId, groupName);
     }
 

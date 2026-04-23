@@ -151,6 +151,12 @@ public class BillService
         bill.AccountId = accountId;
         bill.UpdatedAt = DateTime.UtcNow;
 
+
+        var table = bill.Table;
+        table.SessionId = Guid.NewGuid(); // reset session để bàn mới có session mới
+        table.Status = TableStatus.Hidden; // Sau khi thanh toán, tạm ẩn bàn đi (không cho order mới) — chờ staff dọn dẹp và set lại Available
+        table.UpdatedAt = DateTime.UtcNow;
+
         await _db.SaveChangesAsync();
 
         var dto = await BuildBillDtoAsync(bill);

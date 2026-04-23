@@ -31,7 +31,7 @@ public class GuestService
         var guest = new Guest
         {
             Name = request.Name.Trim(),
-            TableId = table.Id,
+            TableId = table.Number,
             SessionId = table.SessionId, // Sau này dùng để phát hiện bàn đã reset (SessionId bàn thay đổi)
             CreatedAt = DateTime.UtcNow
         };

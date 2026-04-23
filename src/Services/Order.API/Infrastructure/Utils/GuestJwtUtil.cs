@@ -31,7 +31,7 @@ public class GuestJwtUtil : IGuestJwtUtil
         var claims = new[]
         {
             new Claim("guestId", guest.Id.ToString()),
-            new Claim("tableId", guest.TableId.ToString()),
+             new Claim("tableId", guest.TableNumber.ToString()),  // ← đổi từ TableId → TableNumber
             new Claim("sessionId", sessionId.ToString()), // snapshot SessionId
             new Claim("role", "Guest"),
             new Claim("tokenType", "GuestAccess"),
@@ -47,7 +47,7 @@ public class GuestJwtUtil : IGuestJwtUtil
         var claims = new[]
         {
             new Claim("guestId", guest.Id.ToString()),
-            new Claim("tableId", guest.TableId.ToString()),
+             new Claim("tableId", guest.TableNumber.ToString()),  // ← đổi từ TableId → TableNumber
             new Claim("sessionId", sessionId.ToString()),
             new Claim("tokenType", "GuestRefresh"),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())

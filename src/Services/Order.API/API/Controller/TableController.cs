@@ -75,7 +75,7 @@ public class TableController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetPublic(int number)
     {
-        var table = await _tableService.GetByIdPublicAsync(number);
+        var table = await _tableService.GetByNumberPublicAsync(number);
         return Ok(new { message = "Get table successfully", data = table });
     }
 

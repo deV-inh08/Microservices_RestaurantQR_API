@@ -1,16 +1,23 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using Order.API.Application.DTOs;
 using Order.API.Domain.Entities;
+using Order.API.Hubs;
 using Order.API.Infrastructure.Persistence;
 using Shared.DTOs;
+using System.Xml;
 
 namespace Order.API.Application.Service;
 
 public class TableService
 {
     private readonly OrderDbContext _db;
-
-    public TableService(OrderDbContext db) => _db = db;
+    private readonly IHubContext<OrderHub> _hub;
+    public TableService(OrderDbContext db, IHubContext<OrderHub> hub)
+    {
+        _db = db;
+        _hub = hub;
+    }
 
     public async Task<PaginatedResponse<TableDto>> GetAllAsync(PaginationParams p)
     {
@@ -58,7 +65,10 @@ public class TableService
         table.Status = request.Status;
         table.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
-        return ToDto(table);
+        var dto = ToDto(table);
+        // 2. Gửi sự kiện realtime cho Admin (những người ở group "staff")
+        await _hub.Clients.Group("staff").SendAsync("TableStatusChanged", dto);
+        return dto;
     }
 
 

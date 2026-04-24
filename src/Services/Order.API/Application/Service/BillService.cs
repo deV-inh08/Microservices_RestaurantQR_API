@@ -165,7 +165,7 @@ public class BillService
         await _hub.Clients.Group("staff").SendAsync("BillPaid", dto);
 
         // Notify guest's table: hiển thị "Đã thanh toán"
-        await _hub.Clients.Group($"table-{bill.TableId}").SendAsync("BillPaid", dto);
+        await _hub.Clients.Group($"table-{bill.Table.Number}").SendAsync("BillPaid", dto);
 
         return dto;
     }

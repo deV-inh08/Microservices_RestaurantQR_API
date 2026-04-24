@@ -38,6 +38,7 @@ public class OrderHub : Hub
         _logger.LogInformation("Connection {Id} joined {Group}", Context.ConnectionId, groupName);
     }
 
+
     /// <summary>
     /// Guest rời group khi đóng tab (cleanup)
     /// </summary>
@@ -46,6 +47,8 @@ public class OrderHub : Hub
         var groupName = $"table-{tableId}";
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
     }
+
+
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {

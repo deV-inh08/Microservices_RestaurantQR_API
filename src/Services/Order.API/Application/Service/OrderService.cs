@@ -91,7 +91,7 @@ public class OrderService
         await _hub.Clients.Group("staff").SendAsync("OrderCreated", dto);
 
         // 2. Notify guest's table: cập nhật danh sách đơn
-        await _hub.Clients.Group($"table-{order.TableId}").SendAsync("OrderCreated", dto);
+        await _hub.Clients.Group($"table-{order.Table.Number}").SendAsync("OrderCreated", dto);
 
         return dto;
 
@@ -149,7 +149,7 @@ public class OrderService
         await _hub.Clients.Group("staff").SendAsync("OrderCreated", dto);
 
         // 2. Notify guest's table: cập nhật danh sách đơn
-        await _hub.Clients.Group($"table-{order.TableId}").SendAsync("OrderCreated", dto);
+        await _hub.Clients.Group($"table-{order.Table.Number}").SendAsync("OrderCreated", dto);
 
         return dto;
     }

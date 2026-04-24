@@ -36,6 +36,8 @@ public class Reservation
 
     [BsonElement("tableId")]
     public int? TableId { get; set; }
+    [BsonElement("tableNumber")]
+    public int? TableNumber { get; set; }
 
     [BsonElement("numberOfPeople")]
     public int NumberOfPeople { get; set; }

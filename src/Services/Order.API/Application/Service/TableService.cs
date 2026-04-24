@@ -98,7 +98,7 @@ public class TableService
         return ToDto(table);
     }
 
-    public async Task<object> GetByIdPublicAsync(int number)
+    public async Task<object> GetByNumberPublicAsync(int number)
     {
         var table = await _db.Tables.FirstOrDefaultAsync(t => t.Number == number)
             ?? throw new KeyNotFoundException("Table not found");

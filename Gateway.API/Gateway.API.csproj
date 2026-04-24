@@ -13,9 +13,6 @@
 		<!-- YARP Reverse Proxy -->
 		<PackageReference Include="Yarp.ReverseProxy" Version="2.3.0" />
 
-		<!-- Rate Limiting -->
-		<PackageReference Include="Microsoft.AspNetCore.RateLimiting" Version="8.0.0" />
-
 		<!-- JWT Validation (để Gateway có thể đọc token nếu cần) -->
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.6" />
 	</ItemGroup>

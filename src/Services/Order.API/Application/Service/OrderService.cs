@@ -172,7 +172,7 @@ public class OrderService
         await _hub.Clients.Group("staff").SendAsync("OrderStatusUpdated", dto);
 
         // 2. Notify guest's table: status đơn hàng thay đổi
-        await _hub.Clients.Group($"table-{order.TableId}").SendAsync("OrderStatusUpdated", dto);
+        await _hub.Clients.Group($"table-{order.Table.Number}").SendAsync("OrderStatusUpdated", dto);
 
         return dto;
     }

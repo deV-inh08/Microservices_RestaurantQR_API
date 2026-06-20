@@ -1,4 +1,4 @@
-namespace Menu.API.Infrastructure.Utils;
+namespace Menu.API.Infrastruture.Utils;
 
 public interface IFileUploadUtil
 {
@@ -26,7 +26,7 @@ public class FileUploadUtil : IFileUploadUtil
             throw new ArgumentException("File is empty");
 
         // Validate file size (max 5MB)
-        const long maxFileSize = 5 * 1024 * 1024;
+        const long maxFileSize = 10 * 1024 * 1024;
         if (file.Length > maxFileSize)
             throw new ArgumentException("File size exceeds 5MB limit");
 

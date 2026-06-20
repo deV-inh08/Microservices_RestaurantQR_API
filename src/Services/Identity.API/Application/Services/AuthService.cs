@@ -30,6 +30,8 @@ public class AuthService
         var account = await _db.Accounts
             .FirstOrDefaultAsync(a => a.Email == request.Email.ToLower());
 
+        Console.WriteLine($"Account {account.Email}");
+
         if (account is null)
             throw new UnauthorizedAccessException("Email isn't exists");
 

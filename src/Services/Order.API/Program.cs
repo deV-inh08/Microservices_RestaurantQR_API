@@ -271,6 +271,9 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<OrderDbContext>();
     db.Database.Migrate();
+
+    // Không seed dữ liệu mẫu vì Order.API không cần (không có bảng nào cần seed)
+    await DatabaseSeeder.SeedAsync(db);
 }
 
 app.UseMiddleware<GlobalExceptionMiddleware>();

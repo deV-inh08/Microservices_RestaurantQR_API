@@ -1,7 +1,7 @@
 ﻿using Menu.API.Application.DTOs;
 using Menu.API.Domain.Entities;
 using Menu.API.Infrastructure.Persistence;
-using Menu.API.Infrastructure.Utils;
+using Menu.API.Infrastruture.Utils;
 using Microsoft.EntityFrameworkCore;
 using Shared.DTOs;
 
